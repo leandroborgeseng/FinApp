@@ -17,6 +17,7 @@ import { SimuladorESeScreen, RelatorioMensalScreen, PGBLScreen, ScoreSaudeScreen
 import { RecorrenciasSheet } from './screens/screens-sheet.jsx';
 import { ToastHost } from './components/Toast.jsx';
 import { applyThemeClass } from './lib/theme.js';
+import { loadActiveTab, saveActiveTab } from './lib/appPrefs.js';
 
 export default function App() {
   const { user, loading, isAuthenticated } = useAuth();
@@ -56,7 +57,8 @@ function MainApp({ user }) {
   const txActions = useTransactionActions();
   const { create: createFinancing } = useFinancings();
 
-  const [activeTab, setActiveTab] = React.useState('dashboard');
+  const [activeTab, setActiveTab] = React.useState(loadActiveTab);
+  const [gestaoTab, setGestaoTab] = React.useState('financ');
   const [showModal, setShowModal] = React.useState(false);
   const [showRepasse, setShowRepasse] = React.useState(false);
   const [showGestao, setShowGestao] = React.useState(false);
@@ -109,8 +111,15 @@ function MainApp({ user }) {
     setShowPlanilha(false);
   };
 
+  const openGestao = (tab = 'financ') => {
+    closeAllSub();
+    setGestaoTab(tab);
+    setShowGestao(true);
+  };
+
   const handleTabChange = (tab) => {
     setActiveTab(tab);
+    saveActiveTab(tab);
     closeAllSub();
   };
 
@@ -226,7 +235,7 @@ function MainApp({ user }) {
               onBack={closeAllSub}
             />
           ) : subScreen === 'gestao' ? (
-            <GestaoScreen onBack={closeAllSub} />
+            <GestaoScreen onBack={closeAllSub} initialTab={gestaoTab} />
           ) : subScreen === 'independencia' ? (
             <IndependenciaScreen onBack={closeAllSub} />
           ) : subScreen === 'tributario' ? (
@@ -275,7 +284,8 @@ function MainApp({ user }) {
                   onToggleDark={handleToggleDark}
                   repasse={repasseState}
                   onShowRepasse={() => setShowRepasse(true)}
-                  onShowGestao={() => setShowGestao(true)}
+                  onShowGestao={() => openGestao('financ')}
+                  onShowGestaoContas={() => openGestao('contas')}
                   onShowIndependencia={() => setShowIndependencia(true)}
                   onShowTributario={() => setShowTributario(true)}
                   onShowComparativo={() => setShowComparativo(true)}

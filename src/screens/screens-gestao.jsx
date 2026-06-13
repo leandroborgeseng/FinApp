@@ -388,8 +388,12 @@ function RecorrenciasTab() {
 }
 
 /* ── GestaoScreen ───────────────────────────────────── */
-function GestaoScreen({ onBack }) {
-  const [tab, setTab] = React.useState('financ');
+function GestaoScreen({ onBack, initialTab = 'financ' }) {
+  const [tab, setTab] = React.useState(initialTab);
+
+  React.useEffect(() => {
+    setTab(initialTab);
+  }, [initialTab]);
 
   return (
     <div style={{ height: '100%', overflowY: 'auto', background: 'var(--bg-app)', fontFamily: 'DM Sans, system-ui' }}>

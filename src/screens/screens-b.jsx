@@ -566,21 +566,27 @@ function PatrimonioScreen() {
 }
 
 /* ── Mais ───────────────────────────────────────────── */
-function MaisScreen({ user, syncStatus, dark, onToggleDark, repasse, onShowRepasse, onShowGestao, onShowIndependencia, onShowTributario, onShowComparativo, onShowCalculadora, onShowSimulador, onShowRelatorio, onShowPGBL, onShowScore, onShowPlanilha }) {
+function MaisScreen({ user, syncStatus, dark, onToggleDark, repasse, onShowRepasse, onShowGestao, onShowGestaoContas, onShowIndependencia, onShowTributario, onShowComparativo, onShowCalculadora, onShowSimulador, onShowRelatorio, onShowPGBL, onShowScore, onShowPlanilha }) {
   const { logout } = useAuth();
   const qc = useQueryClient();
   const { pending, online } = useSyncStatus();
   const [manualSync, setManualSync] = React.useState(false);
+  const [backupStamp, setBackupStamp] = React.useState(() => localStorage.getItem('fin_last_backup'));
   const currentIdx = repasseMonthIndex(repasse);
   const repasseMonth = repasse?.months?.[currentIdx];
   const repasseDesc  = repasseMonth
     ? `${fmt(repasseMonth.amount)}/mês · ${repasseMonth.done ? 'Realizado' : 'Pendente'}`
     : 'Controle de retiradas PJ→PF';
 
-  const lastBackup = localStorage.getItem('fin_last_backup');
-  const backupDesc = lastBackup
-    ? `Último: ${new Date(lastBackup).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}`
-    : 'Nenhum backup neste dispositivo';
+  const lastBackup = backupStamp;
+  const backupLabel = lastBackup
+    ? new Date(lastBackup).toLocaleString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+    : null;
+  const daysSinceBackup = lastBackup
+    ? Math.floor((Date.now() - new Date(lastBackup).getTime()) / 86400000)
+    : null;
+  const backupStale = lastBackup == null || daysSinceBackup > 30;
+  const backupDesc = backupLabel ? `Último: ${backupLabel}` : 'Nenhum backup neste dispositivo';
 
   const syncDesc = !online
     ? 'Sem conexão · dados em cache'
@@ -627,6 +633,7 @@ function MaisScreen({ user, syncStatus, dark, onToggleDark, repasse, onShowRepas
     try {
       await downloadBackup();
       refreshAll();
+      setBackupStamp(localStorage.getItem('fin_last_backup'));
       toast.success('Backup criado');
     } catch (e) {
       toast.error(e.message || 'Falha ao criar backup');
@@ -638,7 +645,7 @@ function MaisScreen({ user, syncStatus, dark, onToggleDark, repasse, onShowRepas
       title: 'Ferramentas',
       items: [
         { icon: '⇄', label: 'Repasse PJ → PF',         desc: repasseDesc,                      action: onShowRepasse      },
-        { icon: '◈', label: 'Gestão Financeira',       desc: 'Financ. · Invest. · Recorr.',        action: onShowGestao       },
+        { icon: '◈', label: 'Gestão Financeira',       desc: 'Financ. · Invest. · Contas · Recorr.', action: onShowGestao       },
         { icon: '◍', label: 'Independência Financeira', desc: 'Tracker · Meta R$3M/2029',          action: onShowIndependencia },
         { icon: '▦', label: 'Análise Tributária PJ',    desc: 'Simples Nacional · Pro-labore',      action: onShowTributario    },
         { icon: '▣', label: 'Comparativo de Meses',          desc: 'Dois meses lado a lado',              action: onShowComparativo   },
@@ -652,8 +659,7 @@ function MaisScreen({ user, syncStatus, dark, onToggleDark, repasse, onShowRepas
     {
       title: 'Organização',
       items: [
-        { icon: '◉', label: 'Contas',          desc: 'Em breve', comingSoon: true },
-        { icon: '▣', label: 'Cartões',         desc: 'Em breve', comingSoon: true },
+        { icon: '◉', label: 'Contas e cartões', desc: 'Saldos PF/PJ e faturas', action: onShowGestaoContas },
         { icon: '↺', label: 'Recorrências',    desc: '8 lançamentos fixos',   action: onShowPlanilha },
       ],
     },
@@ -670,7 +676,6 @@ function MaisScreen({ user, syncStatus, dark, onToggleDark, repasse, onShowRepas
       title: 'Preferências',
       items: [
         { icon: '◑', label: 'Tema', desc: dark ? 'Escuro ●' : 'Claro ○', action: onToggleDark },
-        { icon: '◎', label: 'Usuários', desc: 'Em breve', comingSoon: true },
       ],
     },
   ];
@@ -685,6 +690,35 @@ function MaisScreen({ user, syncStatus, dark, onToggleDark, repasse, onShowRepas
 
         {/* Header */}
         <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>Mais</div>
+
+        <Card style={{
+          padding: '16px 18px',
+          border: backupStale ? '1.5px solid #FCD34D' : '1.5px solid var(--border)',
+          background: backupStale ? '#FFFBEB' : 'var(--bg-card)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 12 }}>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>Backup dos seus dados</div>
+              <div style={{ fontSize: 11, color: backupStale ? '#B45309' : 'var(--text-muted)', marginTop: 4, lineHeight: 1.4 }}>
+                {backupStale
+                  ? (lastBackup ? `Último backup há ${daysSinceBackup} dias — recomendado atualizar` : 'Nenhum backup neste dispositivo ainda')
+                  : backupDesc}
+              </div>
+            </div>
+            <div style={{ fontSize: 22, lineHeight: 1 }}>⊙</div>
+          </div>
+          <button
+            type="button"
+            onClick={handleBackup}
+            style={{
+              width: '100%', padding: '12px', borderRadius: 12, border: 'none',
+              background: '#2563EB', color: 'var(--text-inverse)', fontSize: 14, fontWeight: 700,
+              cursor: 'pointer', fontFamily: 'DM Sans, system-ui',
+            }}
+          >
+            Criar backup agora
+          </button>
+        </Card>
 
         <InstallPrompt />
 
