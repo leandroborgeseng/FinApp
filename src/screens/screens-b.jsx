@@ -13,6 +13,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { processQueue } from '../api/client.js';
 import { useSyncStatus } from '../hooks/useSyncStatus.jsx';
 import { toast } from '../lib/toast.js';
+import { SOLO_VISIBLE_TOOLS } from '../lib/soloMenu.js';
 import { netWorthDelta12m, formatNetWorthDelta } from '../lib/sparklines.js';
 // screens-b.jsx — Planejamento + Patrimônio + Mais
 
@@ -640,21 +641,23 @@ function MaisScreen({ user, syncStatus, dark, onToggleDark, repasse, onShowRepas
     }
   };
 
+  const toolItems = [
+    { icon: '⇄', label: 'Repasse PJ → PF',         desc: repasseDesc,                      action: onShowRepasse      },
+    { icon: '◈', label: 'Gestão Financeira',       desc: 'Financ. · Invest. · Contas · Recorr.', action: onShowGestao       },
+    { icon: '◍', label: 'Independência Financeira', desc: 'Tracker · Meta R$3M/2029',          action: onShowIndependencia },
+    { icon: '▦', label: 'Análise Tributária PJ',    desc: 'Simples Nacional · Pro-labore',      action: onShowTributario    },
+    { icon: '▣', label: 'Comparativo de Meses',          desc: 'Dois meses lado a lado',              action: onShowComparativo   },
+    { icon: '◎', label: 'Calculadora de Rentabilidade',    desc: 'CDI, SELIC, IPCA, custom',            action: onShowCalculadora   },
+    { icon: '◉', label: 'Simulador E Se?',                 desc: 'Impacto de aportes extras',            action: onShowSimulador     },
+    { icon: '▤', label: 'Relatório Mensal',                desc: 'KPIs completos do mês',                action: onShowRelatorio     },
+    { icon: '▫', label: 'PGBL vs CDB',                     desc: 'Previdência vs renda fixa',            action: onShowPGBL         },
+    { icon: '◐', label: 'Score de Saúde Financeira',      desc: 'Diagnóstico 0-100 em 5 pilares',      action: onShowScore        },
+  ];
+
   const sections = [
     {
       title: 'Ferramentas',
-      items: [
-        { icon: '⇄', label: 'Repasse PJ → PF',         desc: repasseDesc,                      action: onShowRepasse      },
-        { icon: '◈', label: 'Gestão Financeira',       desc: 'Financ. · Invest. · Contas · Recorr.', action: onShowGestao       },
-        { icon: '◍', label: 'Independência Financeira', desc: 'Tracker · Meta R$3M/2029',          action: onShowIndependencia },
-        { icon: '▦', label: 'Análise Tributária PJ',    desc: 'Simples Nacional · Pro-labore',      action: onShowTributario    },
-        { icon: '▣', label: 'Comparativo de Meses',          desc: 'Dois meses lado a lado',              action: onShowComparativo   },
-        { icon: '◎', label: 'Calculadora de Rentabilidade',    desc: 'CDI, SELIC, IPCA, custom',            action: onShowCalculadora   },
-        { icon: '◉', label: 'Simulador E Se?',                 desc: 'Impacto de aportes extras',            action: onShowSimulador     },
-        { icon: '▤', label: 'Relatório Mensal',                desc: 'KPIs completos do mês',                action: onShowRelatorio     },
-        { icon: '▫', label: 'PGBL vs CDB',                     desc: 'Previdência vs renda fixa',            action: onShowPGBL         },
-        { icon: '◐', label: 'Score de Saúde Financeira',      desc: 'Diagnóstico 0-100 em 5 pilares',      action: onShowScore        },
-      ],
+      items: toolItems.filter((item) => SOLO_VISIBLE_TOOLS.has(item.label)),
     },
     {
       title: 'Organização',

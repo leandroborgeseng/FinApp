@@ -4,6 +4,7 @@ import { useFinance } from '../hooks/useFinance.jsx';
 import { SparkLine, BarChart, AreaChart, DonutChart, ChartBox } from '../components/charts.jsx';
 import { FluxoView } from './screens-c.jsx';
 import { SyncBadge } from '../components/navigation.jsx';
+import { InstallPrompt } from '../components/InstallPrompt.jsx';
 import { currentMonthKey, findBudgetIndex, formatMonthLong, getTodayDay, budgetLabelToKey, repasseMonthIndex, repasseTotalDone, MONTH_LABELS } from '../lib/dates.js';
 import { openingBalanceForMonth, buildMonthEntries, todayContextForMonth, balanceAtDay } from '../lib/balances.js';
 import { buildDashboardSparks } from '../lib/sparklines.js';
@@ -134,6 +135,8 @@ function DashboardScreen({ onNewEntry, repasse, onShowRepasse, transactions, txA
           </div>
           <SyncBadge status={syncStatus || 'synced'}/>
         </div>
+
+        <InstallPrompt compact />
 
         {/* Saldo de hoje */}
         <Card style={{ padding: '14px 16px', background: todayBalance < 0 ? '#FEF2F2' : 'var(--bg-card)', border: todayBalance < 0 ? '1.5px solid #FECACA' : undefined }}>

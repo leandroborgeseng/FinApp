@@ -253,7 +253,7 @@ function MainApp({ user }) {
           ) : subScreen === 'score' ? (
             <ScoreSaudeScreen onBack={closeAllSub} />
           ) : subScreen === 'planilha' ? (
-            <RecorrenciasSheet onBack={closeAllSub} />
+            <RecorrenciasSheet onBack={closeAllSub} transactions={txList} txActions={txActions} />
           ) : (
             <>
               {activeTab === 'dashboard' && (

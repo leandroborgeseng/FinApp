@@ -1,6 +1,8 @@
 # FinApp — Gestor Financeiro Pessoal + PJ
 
-Aplicativo de gestão financeira integrando PF e PJ, baseado no handoff em `design_handoff_finapp/`.
+App de uso pessoal para integrar finanças PF e PJ: fluxo de caixa, repasse, investimentos, orçamento e PWA offline.
+
+**Produção:** https://finapp-lb.up.railway.app
 
 ## Executar
 
@@ -13,12 +15,16 @@ npm run build && npm start   # produção local
 - **Frontend dev:** http://localhost:5173
 - **API:** http://localhost:5173/api (proxy) ou :3001/api
 
-### Login demo
+### Login
+
+Use seu e-mail e senha configurados no deploy. Para testes locais com seed:
 
 | Campo | Valor |
 |-------|-------|
 | E-mail | `demo@finapp.com` |
 | Senha | `finapp2026` |
+
+O app lembra credenciais neste dispositivo (checkbox no login).
 
 ### PostgreSQL local (opcional)
 
@@ -31,13 +37,23 @@ npm run dev
 
 Sem `DATABASE_URL`, o servidor usa memória (dados resetam ao reiniciar).
 
+## Uso rápido
+
+| Ação | Onde |
+|------|------|
+| Novo lançamento | FAB (+) em qualquer aba |
+| Repasse PJ → PF | Mais → Ferramentas |
+| Contas e cartões | Mais → Organização |
+| Recorrências + gerar mês | Mais → Recorrências → **Gerar lançamentos** |
+| Backup | Card no topo de Mais |
+| Instalar PWA | Banner no Dashboard ou em Mais |
+
 ## PWA
 
-- Instalável via navegador (banner na aba **Mais**)
+- Instalável no Chrome (botão **Instalar**) ou Safari iOS (Compartilhar → Adicionar à Tela de Início)
 - Service Worker com cache de assets e API (`NetworkFirst`)
 - Fonte DM Sans self-hosted (funciona offline após primeiro acesso)
-- Layout full-viewport com safe areas (sem frame iOS de protótipo)
-- **Offline:** IndexedDB cache + fila de mutações (transações enfileiradas sem rede)
+- **Offline:** IndexedDB + fila de mutações (transações, repasse, investimentos, etc.)
 - **Export/Import:** JSON na aba Mais → Dados
 
 ## Scripts
@@ -60,12 +76,7 @@ src/
 server/
   store/index.js        — Postgres ou memória
   routes/               — auth, transactions, bootstrap, data
-design_handoff_finapp/  — Protótipo HTML de referência visual
 ```
-
-## Referência de design
-
-Consulte `design_handoff_finapp/README.md` para tokens, navegação e especificações completas.
 
 ## Deploy no Railway
 

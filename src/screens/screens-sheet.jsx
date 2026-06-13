@@ -1,9 +1,11 @@
 import React from 'react';
-import { fmt } from '../data.js';
 import { useFinance, useRecurringOverrides, useMonthlyEvents } from '../hooks/useFinance.jsx';
+import { findBudgetIndex } from '../lib/dates.js';
+import { buildRecurringTransactionsForMonth, filterNewTransactions } from '../lib/recurringTx.js';
+import { toast } from '../lib/toast.js';
 // screens-sheet.jsx — Planilha de Recorrências (Excel-like)
 
-function RecorrenciasSheet({ onBack }) {
+function RecorrenciasSheet({ onBack, transactions = [], txActions }) {
   const d = useFinance();
   const { data: overrides = {}, save } = useRecurringOverrides();
   const { save: saveEvents } = useMonthlyEvents();
@@ -16,6 +18,7 @@ function RecorrenciasSheet({ onBack }) {
   const [filterType, setFilterType] = React.useState('Todos');
   const [newRow,     setNewRow]     = React.useState(null);
   const [rows,       setRows]       = React.useState(BASE);
+  const [generating, setGenerating] = React.useState(false);
 
   React.useEffect(() => {
     setRows(d.monthlyEvents);
@@ -74,6 +77,35 @@ function RecorrenciasSheet({ onBack }) {
     setNewRow(null);
   };
 
+  const currentMonthIdx = findBudgetIndex(d.monthlyBudget);
+  const currentMonthLabel = MONTHS[currentMonthIdx];
+
+  const generateMonth = async () => {
+    if (!txActions?.bulkCreateAsync) {
+      toast.error('Não foi possível criar lançamentos');
+      return;
+    }
+    if (currentMonthIdx < 0 || !currentMonthLabel) {
+      toast.error('Mês atual não encontrado no orçamento');
+      return;
+    }
+    setGenerating(true);
+    try {
+      const generated = buildRecurringTransactionsForMonth(rows, currentMonthLabel, currentMonthIdx, overrides);
+      const filtered = filterNewTransactions(transactions, generated);
+      if (!filtered.length) {
+        toast.success(`Nada novo — lançamentos de ${currentMonthLabel} já existem`);
+        return;
+      }
+      await txActions.bulkCreateAsync(filtered);
+      toast.success(`${filtered.length} lançamento(s) criado(s) para ${currentMonthLabel}`);
+    } catch (e) {
+      toast.error(e?.message || 'Falha ao gerar lançamentos');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg-app)', fontFamily: 'DM Sans, system-ui' }}>
 
@@ -90,6 +122,22 @@ function RecorrenciasSheet({ onBack }) {
           <button onClick={() => setNewRow({ desc: '', type: 'expense', entity: 'PF', cat: 'Outros', value: '' })}
             style={{ width: 34, height: 34, borderRadius: '50%', background: 'var(--text-primary)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--text-inverse)', fontSize: 20, fontWeight: 300 }}>+</button>
         </div>
+
+        {currentMonthLabel && (
+          <button
+            type="button"
+            onClick={generateMonth}
+            disabled={generating || txActions?.isPending}
+            style={{
+              width: '100%', marginBottom: 10, padding: '10px 14px', borderRadius: 12,
+              border: '1.5px solid #BFDBFE', background: '#EFF6FF', color: '#1D4ED8',
+              fontSize: 13, fontWeight: 700, cursor: generating ? 'wait' : 'pointer',
+              fontFamily: 'DM Sans, system-ui', opacity: generating ? 0.7 : 1,
+            }}
+          >
+            {generating ? 'Gerando…' : `Gerar lançamentos de ${currentMonthLabel}`}
+          </button>
+        )}
 
         {/* Filters */}
         <div style={{ display: 'flex', gap: 6 }}>
