@@ -78,7 +78,7 @@ function RecorrenciasSheet({ onBack }) {
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#F7F8FA', fontFamily: 'DM Sans, system-ui' }}>
 
       {/* Fixed top bar */}
-      <div style={{ flexShrink: 0, padding: '56px 16px 12px', background: '#fff', borderBottom: '1.5px solid #ECEEF4', boxShadow: '0 2px 8px rgba(26,31,54,0.06)' }}>
+      <div style={{ flexShrink: 0, padding: 'var(--pad-top) 16px 12px', background: '#fff', borderBottom: '1.5px solid #ECEEF4', boxShadow: '0 2px 8px rgba(26,31,54,0.06)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
           <button onClick={onBack} style={{ width: 34, height: 34, borderRadius: '50%', background: '#F7F8FA', border: '1.5px solid #ECEEF4', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="#1A1F36" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>

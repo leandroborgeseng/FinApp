@@ -34,7 +34,7 @@ function PlanejamentoScreen({ transactions }) {
 
   return (
     <div style={{ height: '100%', overflowY: 'auto', background: '#F7F8FA', fontFamily: 'DM Sans, system-ui' }}>
-      <div style={{ padding: '68px 18px 100px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ padding: 'var(--pad-top) var(--pad-x) var(--pad-bottom)', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
         {/* Header */}
         <div style={{ fontSize: 20, fontWeight: 700, color: '#1A1F36' }}>Planejamento</div>
@@ -201,7 +201,7 @@ function PatrimonioScreen() {
 
   return (
     <div style={{ height: '100%', overflowY: 'auto', background: '#F7F8FA', fontFamily: 'DM Sans, system-ui' }}>
-      <div style={{ padding: '68px 18px 100px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ padding: 'var(--pad-top) var(--pad-x) var(--pad-bottom)', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
         {/* Header */}
         <div style={{ fontSize: 20, fontWeight: 700, color: '#1A1F36' }}>Patrimônio</div>
@@ -487,7 +487,7 @@ function MaisScreen({ user, syncStatus, dark, onToggleDark, repasse, onShowRepas
 
   return (
     <div style={{ height: '100%', overflowY: 'auto', background: '#F7F8FA', fontFamily: 'DM Sans, system-ui' }}>
-      <div style={{ padding: 'calc(16px + env(safe-area-inset-top, 0px)) 18px calc(100px + env(safe-area-inset-bottom, 0px))', display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{ padding: 'var(--pad-top) var(--pad-x) var(--pad-bottom)', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
         {/* Header */}
         <div style={{ fontSize: 20, fontWeight: 700, color: '#1A1F36' }}>Mais</div>

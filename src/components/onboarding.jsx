@@ -87,7 +87,7 @@ function OnboardingApp() {
 
   return (
     <div style={{
-      width: '100%', minHeight: '100dvh', maxWidth: 480, margin: '0 auto',
+      width: '100%', minHeight: '100dvh',
       background: '#F7F8FA',
       overflow: 'hidden',
       position: 'relative',
@@ -95,18 +95,6 @@ function OnboardingApp() {
       display: 'flex',
       flexDirection: 'column',
     }}>
-
-      {/* Status bar */}
-      <div style={{ height: 'calc(50px + env(safe-area-inset-top, 0px))', paddingTop: 'env(safe-area-inset-top, 0px)', background: '#1A1F36', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', padding: '0 28px 10px', flexShrink: 0 }}>
-        <span style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>9:41</span>
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <svg width="16" height="12" viewBox="0 0 16 12" fill="white" opacity="0.9"><rect x="0" y="4" width="3" height="8" rx="1"/><rect x="4.5" y="2" width="3" height="10" rx="1"/><rect x="9" y="0" width="3" height="12" rx="1"/></svg>
-          <svg width="16" height="12" viewBox="0 0 16 12" fill="white" opacity="0.9"><path d="M8 2C5.6 2 3.4 3 1.8 4.6L0 2.8C2 1 4.8 0 8 0s6 1 8 2.8L14.2 4.6C12.6 3 10.4 2 8 2z" fill="white"/><path d="M8 6C6.4 6 5 6.6 4 7.6L2.2 5.8C3.6 4.6 5.7 4 8 4s4.4.6 5.8 1.8L12 7.6C11 6.6 9.6 6 8 6z" fill="white"/><circle cx="8" cy="10" r="2" fill="white"/></svg>
-          <div style={{ width: 24, height: 12, borderRadius: 4, border: '1.5px solid rgba(255,255,255,0.6)', padding: '1px 2px', display: 'flex', alignItems: 'center' }}>
-            <div style={{ width: '75%', height: '100%', background: 'white', borderRadius: 2 }}/>
-          </div>
-        </div>
-      </div>
 
       {step === 'slides' && (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#fff' }}>
