@@ -40,6 +40,14 @@ export function updateGoal(id, patch) {
   return apiFetch(`/goals/${id}`, { method: 'PUT', body: JSON.stringify(patch) });
 }
 
+export function fetchFinancings() {
+  return apiFetch('/financings');
+}
+
+export function updateFinancing(id, patch) {
+  return apiFetch(`/financings/${id}`, { method: 'PUT', body: JSON.stringify(patch) });
+}
+
 export function saveMonthlyEvents(events) {
   return apiFetch('/monthly-events', { method: 'PUT', body: JSON.stringify({ events }) });
 }

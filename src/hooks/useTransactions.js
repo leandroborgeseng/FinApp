@@ -12,7 +12,10 @@ export function useTransactions({ month, entity } = {}) {
 export function useTransactionMutations() {
   const qc = useQueryClient();
 
-  const invalidate = () => qc.invalidateQueries({ queryKey: ['transactions'] });
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ['transactions'] });
+    qc.invalidateQueries({ queryKey: ['bootstrap'] });
+  };
 
   const create = useMutation({
     mutationFn: txApi.createTransaction,

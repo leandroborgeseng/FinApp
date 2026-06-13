@@ -1,5 +1,4 @@
 import React from 'react';
-import { AppData } from './data.js';
 import { useAuth } from './context/AuthContext.jsx';
 import { FinanceProvider, useBootstrap, useRepasse, usePreferences } from './hooks/useFinance.jsx';
 import { useTransactions, useTransactionActions } from './hooks/useTransactionActions.js';
@@ -36,7 +35,7 @@ export default function App() {
 }
 
 function MainApp({ user }) {
-  const { data: finance = AppData, isLoading: financeLoading } = useBootstrap();
+  const { data: finance, isLoading: financeLoading, isError: financeError, refetch: refetchFinance } = useBootstrap();
   const { data: repasse, updateMonth, updateAll } = useRepasse();
   const { data: transactions = [], isLoading: txLoading } = useTransactions();
   const { data: preferences, save: savePreferences } = usePreferences();
@@ -101,7 +100,7 @@ function MainApp({ user }) {
       desc: tx.desc,
       value: Number(tx.value),
       type: tx.type || 'expense',
-      entity: tx.entity || 'PF',
+      entity: tx.account || tx.entity || 'PF',
       date: tx.date || new Date().toISOString().slice(0, 10),
       done: tx.status === 'realizado',
       cat: tx.cat || 'Outros',
@@ -146,10 +145,33 @@ function MainApp({ user }) {
 
   const showFAB = !subScreen && (activeTab === 'dashboard' || activeTab === 'movimentos');
   const { status: connectivityStatus } = useSyncStatus();
-  const txList = txLoading ? (finance.transactions || AppData.transactions) : transactions;
+  const txList = transactions;
   const syncStatus = !connectivityStatus || connectivityStatus === 'synced'
-    ? (financeLoading || txLoading ? 'syncing' : 'synced')
+    ? (financeLoading || txLoading || txActions.isPending ? 'syncing' : 'synced')
     : connectivityStatus;
+
+  if (financeLoading && !finance) {
+    return (
+      <AppShell dark={dark}>
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8B90A0', fontFamily: 'DM Sans, system-ui' }}>
+          Carregando seus dados…
+        </div>
+      </AppShell>
+    );
+  }
+
+  if (financeError || !finance) {
+    return (
+      <AppShell dark={dark}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: 24, fontFamily: 'DM Sans, system-ui' }}>
+          <div style={{ color: '#DC2626', fontWeight: 700 }}>Não foi possível carregar os dados</div>
+          <button onClick={() => refetchFinance()} style={{ padding: '12px 20px', borderRadius: 12, border: 'none', background: '#2563EB', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>
+            Tentar novamente
+          </button>
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
     <FinanceProvider data={finance}>

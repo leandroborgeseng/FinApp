@@ -4,6 +4,7 @@ import { useFinance } from '../hooks/useFinance.jsx';
 import { SparkLine, BarChart, AreaChart, DonutChart } from '../components/charts.jsx';
 import { FluxoView } from './screens-c.jsx';
 import { SyncBadge } from '../components/navigation.jsx';
+import { currentMonthKey, findBudgetIndex, formatMonthLong, getTodayDay } from '../lib/dates.js';
 // screens-a.jsx — Dashboard + Movimentos
 
 /* ── shared tiny helpers ───────────────────────────── */
@@ -53,23 +54,33 @@ function useCountUp(target, duration = 1600) {
 function DashboardScreen({ onNewEntry, repasse, onShowRepasse, transactions, txActions, onNavToMovimentos, syncStatus }) {
   const d = useFinance();
   const animNetWorth = useCountUp(d.netWorth);
-  const todayDay     = 11;
-  const currentMonthIdx = 5; // June 2026
+  const todayDay = getTodayDay();
+  const monthKey = currentMonthKey();
+  const currentMonthIdx = findBudgetIndex(d.monthlyBudget);
+  const monthTitle = formatMonthLong();
 
-  const [confirmedKeys, setConfirmedKeys] = React.useState(new Set());
+  const confirmedKeys = React.useMemo(() => {
+    const set = new Set();
+    for (const tx of transactions || []) {
+      if (tx.date?.startsWith(monthKey)) set.add(`${tx.desc}|${tx.date}`);
+    }
+    return set;
+  }, [transactions, monthKey]);
+
   const confirmEvent = (e) => {
-    const dateStr = `2026-06-${String(e.day).padStart(2, '0')}`;
+    const dateStr = `${monthKey}-${String(e.day).padStart(2, '0')}`;
+    const key = `${e.desc}|${dateStr}`;
+    if (confirmedKeys.has(key)) return;
     if (txActions) {
       txActions.create({
         type: e.type, desc: e.desc, value: e.value, entity: e.entity,
         date: dateStr, done: true, cat: e.cat,
       });
     }
-    setConfirmedKeys(prev => new Set([...prev, e.desc + e.day]));
   };
 
   const notifEvents = d.monthlyEvents
-    .filter(e => e.day > todayDay && e.day <= todayDay + 3 && !confirmedKeys.has(e.desc + e.day))
+    .filter(e => e.day > todayDay && e.day <= todayDay + 3 && !confirmedKeys.has(`${e.desc}|${monthKey}-${String(e.day).padStart(2, '0')}`))
     .sort((a, b) => a.day - b.day);
 
   const upcoming = d.monthlyEvents
@@ -105,7 +116,7 @@ function DashboardScreen({ onNewEntry, repasse, onShowRepasse, transactions, txA
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 2 }}>
           <div>
-            <div style={{ fontSize: 13, color: '#8B90A0', fontWeight: 400 }}>Junho 2026</div>
+            <div style={{ fontSize: 13, color: '#8B90A0', fontWeight: 400 }}>{monthTitle}</div>
             <div style={{ fontSize: 20, fontWeight: 700, color: '#1A1F36', lineHeight: 1.2 }}>Visão geral</div>
           </div>
           <SyncBadge status={syncStatus || 'synced'}/>
@@ -563,10 +574,9 @@ function MovimentosScreen({ transactions, txActions, defaultFilter }) {
   const [expanded, setExpanded] = React.useState(null);
   const [editing,  setEditing]  = React.useState({}); // {id: {value, desc, cat}}
   const [view,     setView]     = React.useState('lista');
-  const [monthIdx, setMonthIdx] = React.useState(0);
+  const [monthIdx, setMonthIdx] = React.useState(() => findBudgetIndex(d.monthlyBudget));
 
-  // Sync if defaultFilter changes (e.g. nav from dashboard)
-  React.useEffect(() => { if (defaultFilter) setFilter(defaultFilter); }, [defaultFilter]); // 0 = Jun/26
+  React.useEffect(() => { if (defaultFilter) setFilter(defaultFilter); }, [defaultFilter]);
 
   const MB_ALL    = d.monthlyBudget;
   const M_LABELS  = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];

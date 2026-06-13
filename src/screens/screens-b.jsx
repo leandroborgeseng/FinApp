@@ -6,7 +6,7 @@ import { Card } from './screens-a.jsx';
 import { OrcadoVsRealizado } from './screens-analise.jsx';
 import { SyncBadge } from '../components/navigation.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
-import { InstallPrompt } from '../components/InstallPrompt.jsx';
+import { repasseMonthIndex } from '../lib/dates.js';
 import { downloadExport, downloadBackup, pickAndImportFile } from '../api/backup.js';
 import { useQueryClient } from '@tanstack/react-query';
 // screens-b.jsx — Planejamento + Patrimônio + Mais
@@ -186,15 +186,17 @@ function PatrimonioScreen() {
   const proj = (inv, n) => { const rm = rmf(inv.ret); return Math.round(inv.value * Math.pow(1+rm,n) + inv.monthly*(Math.pow(1+rm,n)-1)/rm); };
   const rg  = Math.pow(1 + 12.68/100, 1/12) - 1;
 
+  const imovelGoal = d.goals?.find((g) => g.name?.includes('Imóvel'));
+  const totalFinDebt = (d.financingList || []).reduce((s, f) => s + (f.balance || 0), 0);
+
   const breakdown = [
     { label: 'PF Disponível',   value: d.pfAvailable,    color: '#16A34A' },
     { label: 'PJ Disponível',   value: d.pjAvailable,    color: '#2563EB' },
     { label: 'Invest. PF',      value: d.pfInvestments,  color: '#7C3AED' },
     { label: 'Invest. PJ',      value: d.pjInvestments,  color: '#8B5CF6' },
-    { label: 'Imóveis (est.)',   value: 420000,           color: '#F59E0B' },
-    { label: 'Previdência',      value: 85000,            color: '#06B6D4' },
-    { label: 'Dívidas',          value: -d.debts,         color: '#EF4444' },
-    { label: 'Financiamentos',   value: -118000,          color: '#F87171' },
+    { label: 'Imóveis (est.)',   value: imovelGoal?.current || 0, color: '#F59E0B' },
+    { label: 'Metas (outras)',   value: (d.goals || []).filter((g) => !g.name?.includes('Imóvel')).reduce((s, g) => s + (g.current || 0), 0), color: '#06B6D4' },
+    { label: 'Financiamentos',   value: -totalFinDebt,    color: '#F87171' },
   ];
 
   return (
@@ -392,7 +394,7 @@ function PatrimonioScreen() {
 function MaisScreen({ user, syncStatus, dark, onToggleDark, repasse, onShowRepasse, onShowGestao, onShowIndependencia, onShowTributario, onShowComparativo, onShowCalculadora, onShowSimulador, onShowRelatorio, onShowPGBL, onShowScore, onShowPlanilha }) {
   const { logout } = useAuth();
   const qc = useQueryClient();
-  const currentIdx = 5; // June
+  const currentIdx = repasseMonthIndex(repasse);
   const repasseMonth = repasse?.months?.[currentIdx];
   const repasseDesc  = repasseMonth
     ? `${fmt(repasseMonth.amount)}/mês · ${repasseMonth.done ? 'Realizado' : 'Pendente'}`
@@ -456,8 +458,8 @@ function MaisScreen({ user, syncStatus, dark, onToggleDark, repasse, onShowRepas
     {
       title: 'Organização',
       items: [
-        { icon: '◉', label: 'Contas',          desc: 'PF e PJ'               },
-        { icon: '▣', label: 'Cartões',         desc: '2 cartões'             },
+        { icon: '◉', label: 'Contas',          desc: 'Em breve', comingSoon: true },
+        { icon: '▣', label: 'Cartões',         desc: 'Em breve', comingSoon: true },
         { icon: '↺', label: 'Recorrências',    desc: '8 lançamentos fixos',   action: onShowPlanilha },
       ],
     },
@@ -474,7 +476,7 @@ function MaisScreen({ user, syncStatus, dark, onToggleDark, repasse, onShowRepas
       title: 'Preferências',
       items: [
         { icon: '◑', label: 'Tema', desc: dark ? 'Escuro ●' : 'Claro ○', action: onToggleDark },
-        { icon: '◎', label: 'Usuários', desc: '1 usuário' },
+        { icon: '◎', label: 'Usuários', desc: 'Em breve', comingSoon: true },
       ],
     },
   ];
@@ -529,7 +531,7 @@ function MaisScreen({ user, syncStatus, dark, onToggleDark, repasse, onShowRepas
               {sec.items.map((item, ii) => (
                 <div key={ii}>
                   {ii > 0 && <div style={{ height: 1, background: '#F4F5F8', margin: '0 12px' }}/>}
-                  <div onClick={item.action} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 12px', cursor: 'pointer' }}>
+                  <div onClick={item.action || (item.comingSoon ? undefined : item.action)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 12px', cursor: item.action ? 'pointer' : 'default', opacity: item.comingSoon ? 0.55 : 1 }}>
                     <div style={{
                       width: 34, height: 34, borderRadius: 9, background: '#F0F1F5',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',

@@ -1,13 +1,14 @@
 import React from 'react';
 import { fmt } from '../data.js';
 import { Card } from './screens-a.jsx';
+import { repasseMonthIndex } from '../lib/dates.js';
 // screens-repasse.jsx — Controle de Repasse PJ → PF
 
 function RepasseScreen({ repasse, onUpdateRepasse, onUpdateMonth, onBack }) {
   const { months, day, monthlyLimit, annualLimit, year } = repasse;
   const [editIdx, setEditIdx] = React.useState(null);
 
-  const currentIdx = 5;
+  const currentIdx = repasseMonthIndex(repasse);
 
   const totalDone  = months.filter((_, i) => i < currentIdx).reduce((s, m) => s + m.amount, 0);
   const totalProj  = months.reduce((s, m) => s + m.amount, 0);

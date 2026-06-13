@@ -3,6 +3,7 @@ import { fmt } from '../data.js';
 import { useFinance } from '../hooks/useFinance.jsx';
 import { AreaChart } from '../components/charts.jsx';
 import { Card } from './screens-a.jsx';
+import { currentMonthKey } from '../lib/dates.js';
 // screens-analise.jsx — Orçado vs. Realizado · Independência · Tributário
 
 /* ─────────────────────────────────────────────────────
@@ -10,7 +11,7 @@ import { Card } from './screens-a.jsx';
    ───────────────────────────────────────────────────── */
 function OrcadoVsRealizado({ transactions }) {
   const d = useFinance();
-  const todayMonth = '2026-06';
+  const todayMonth = currentMonthKey();
 
   const planned = { income: {}, expense: {} };
   d.monthlyEvents.forEach(e => {

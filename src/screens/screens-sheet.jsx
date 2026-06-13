@@ -1,11 +1,12 @@
 import React from 'react';
 import { fmt } from '../data.js';
-import { useFinance, useRecurringOverrides } from '../hooks/useFinance.jsx';
+import { useFinance, useRecurringOverrides, useMonthlyEvents } from '../hooks/useFinance.jsx';
 // screens-sheet.jsx — Planilha de Recorrências (Excel-like)
 
 function RecorrenciasSheet({ onBack }) {
   const d = useFinance();
   const { data: overrides = {}, save } = useRecurringOverrides();
+  const { save: saveEvents } = useMonthlyEvents();
   const MONTHS = d.monthlyBudget.map(r => r.m);
   const BASE   = d.monthlyEvents;
 
@@ -15,6 +16,10 @@ function RecorrenciasSheet({ onBack }) {
   const [filterType, setFilterType] = React.useState('Todos');
   const [newRow,     setNewRow]     = React.useState(null);
   const [rows,       setRows]       = React.useState(BASE);
+
+  React.useEffect(() => {
+    setRows(d.monthlyEvents);
+  }, [d.monthlyEvents]);
 
   const colRef = React.useRef(null);
 
@@ -62,7 +67,10 @@ function RecorrenciasSheet({ onBack }) {
 
   const addRow = () => {
     if (!newRow?.desc) return;
-    setRows(prev => [...prev, { desc: newRow.desc, type: newRow.type || 'expense', value: Number(newRow.value)||0, entity: newRow.entity||'PF', cat: newRow.cat||'Outros', day: 5 }]);
+    const row = { desc: newRow.desc, type: newRow.type || 'expense', value: Number(newRow.value) || 0, entity: newRow.entity || 'PF', cat: newRow.cat || 'Outros', day: 5 };
+    const next = [...rows, row];
+    setRows(next);
+    saveEvents.mutate(next);
     setNewRow(null);
   };
 

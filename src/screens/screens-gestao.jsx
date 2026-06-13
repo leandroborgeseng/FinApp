@@ -1,6 +1,6 @@
 import React from 'react';
 import { fmt } from '../data.js';
-import { useFinance, useInvestments, slugify } from '../hooks/useFinance.jsx';
+import { useFinance, useInvestments, useMonthlyEvents, useFinancings, slugify } from '../hooks/useFinance.jsx';
 import { AreaChart } from '../components/charts.jsx';
 import { Card } from './screens-a.jsx';
 // screens-gestao.jsx — Gestão: Financiamentos · Investimentos · Recorrências
@@ -34,7 +34,7 @@ function simPrepay(balance, r, pmt, nExtra) {
 }
 
 /* ── FinancingCard (single financing) ───────────────── */
-function FinancingCard({ fin }) {
+function FinancingCard({ fin, onSaveBalance }) {
   const [simMode, setSimMode] = React.useState(null);
   const [nPrepay, setNPrepay] = React.useState(6);
   const [bal,     setBal]     = React.useState(fin.balance);
@@ -154,7 +154,7 @@ function FinancingCard({ fin }) {
           <div style={{ fontSize: 11, color: '#8B90A0', marginBottom: 6 }}>Novo saldo devedor (R$)</div>
           <input value={tempBal} onChange={e => setTempBal(e.target.value.replace(/\D/g, ''))}
             style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #F59E0B', fontSize: 16, fontWeight: 700, color: '#F59E0B', background: '#fff', outline: 'none', fontFamily: 'DM Sans, system-ui', boxSizing: 'border-box' }} inputMode="numeric"/>
-          <button onClick={() => { setBal(Number(tempBal) || bal); setSimMode(null); }} style={{ marginTop: 8, width: '100%', padding: '9px', borderRadius: 9, background: '#F59E0B', color: '#fff', border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, system-ui' }}>
+          <button onClick={() => { const v = Number(tempBal) || bal; setBal(v); onSaveBalance?.(fin.id, v); setSimMode(null); }} style={{ marginTop: 8, width: '100%', padding: '9px', borderRadius: 9, background: '#F59E0B', color: '#fff', border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, system-ui' }}>
             Confirmar saldo
           </button>
         </div>
@@ -166,8 +166,9 @@ function FinancingCard({ fin }) {
 /* ── FinanciamentosTab ──────────────────────────────── */
 function FinanciamentosTab() {
   const d = useFinance();
-  const list         = d.financingList || [d.financing];
-  const totalDebt    = list.reduce((s, f) => s + f.balance,     0);
+  const { update } = useFinancings();
+  const list = d.financingList || [d.financing];
+  const totalDebt = list.reduce((s, f) => s + f.balance, 0);
   const totalMonthly = list.reduce((s, f) => s + f.installment, 0);
 
   return (
@@ -183,7 +184,13 @@ function FinanciamentosTab() {
           <div style={{ fontSize: 18, fontWeight: 800, color: '#F59E0B' }}>{fmt(totalMonthly, { short: true })}</div>
         </Card>
       </div>
-      {list.map(fin => <FinancingCard key={fin.id || fin.bank} fin={fin} />)}
+      {list.map((fin) => (
+        <FinancingCard
+          key={fin.id || fin.bank}
+          fin={fin}
+          onSaveBalance={(id, balance) => update.mutate({ id, patch: { balance } })}
+        />
+      ))}
     </div>
   );
 }
@@ -288,8 +295,18 @@ function InvestimentosTab() {
 /* ── RecorrenciasTab ────────────────────────────────── */
 function RecorrenciasTab() {
   const d = useFinance();
-  const [events,  setEvents]  = React.useState(d.monthlyEvents);
+  const { save } = useMonthlyEvents();
+  const [events, setEvents] = React.useState(d.monthlyEvents);
   const [editIdx, setEditIdx] = React.useState(null);
+
+  React.useEffect(() => {
+    setEvents(d.monthlyEvents);
+  }, [d.monthlyEvents]);
+
+  const persist = (next) => {
+    setEvents(next);
+    save.mutate(next);
+  };
 
   const groups = [
     { type: 'income',  label: 'Receitas recorrentes',  icon: '↑', col: '#16A34A', bg: '#F0FDF4' },
@@ -348,7 +365,7 @@ function RecorrenciasTab() {
                               <input defaultValue={e[field]}
                                 onBlur={ev => {
                                   const v = parseFloat(ev.target.value) || e[field];
-                                  setEvents(prev => prev.map((ev2, ii2) => ii2 === e._i ? { ...ev2, [field]: v } : ev2));
+                                  persist(events.map((ev2, ii2) => ii2 === e._i ? { ...ev2, [field]: v } : ev2));
                                 }}
                                 style={{ width: '100%', padding: '9px 12px', borderRadius: 10, border: '1.5px solid #ECEEF4', fontSize: 14, fontWeight: 600, color: '#1A1F36', background: '#fff', outline: 'none', fontFamily: 'DM Sans, system-ui', boxSizing: 'border-box' }}
                                 inputMode="decimal"/>

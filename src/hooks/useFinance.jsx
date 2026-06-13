@@ -7,8 +7,7 @@ export function useBootstrap() {
   return useQuery({
     queryKey: ['bootstrap'],
     queryFn: financeApi.fetchBootstrap,
-    staleTime: 60_000,
-    placeholderData: AppData,
+    staleTime: 30_000,
   });
 }
 
@@ -94,6 +93,37 @@ export function usePreferences() {
   });
 
   return { ...query, save };
+}
+
+export function useMonthlyEvents() {
+  const qc = useQueryClient();
+  const save = useMutation({
+    mutationFn: financeApi.saveMonthlyEvents,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['bootstrap'] });
+      qc.invalidateQueries({ queryKey: ['monthly-events'] });
+    },
+  });
+  return { save };
+}
+
+export function useFinancings() {
+  const qc = useQueryClient();
+  const query = useQuery({
+    queryKey: ['financings'],
+    queryFn: financeApi.fetchFinancings,
+    staleTime: 30_000,
+  });
+
+  const update = useMutation({
+    mutationFn: ({ id, patch }) => financeApi.updateFinancing(id, patch),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['financings'] });
+      qc.invalidateQueries({ queryKey: ['bootstrap'] });
+    },
+  });
+
+  return { ...query, update };
 }
 
 export function slugify(name) {
