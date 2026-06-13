@@ -14,6 +14,7 @@ import { processQueue } from '../api/client.js';
 import { useSyncStatus } from '../hooks/useSyncStatus.jsx';
 import { toast } from '../lib/toast.js';
 import { SOLO_VISIBLE_TOOLS } from '../lib/soloMenu.js';
+import { independenceGoal } from '../lib/goals.js';
 import { netWorthDelta12m, formatNetWorthDelta } from '../lib/sparklines.js';
 // screens-b.jsx — Planejamento + Patrimônio + Mais
 
@@ -268,6 +269,7 @@ function PatrimonioScreen() {
   const rg  = Math.pow(1 + 12.68/100, 1/12) - 1;
 
   const imovelGoal = d.goals?.find((g) => g.name?.includes('Imóvel'));
+  const indepGoal = independenceGoal(d.goals);
   const totalFinDebt = (d.financingList || []).reduce((s, f) => s + (f.balance || 0), 0);
 
   const nwDelta = netWorthDelta12m(d.netWorthHistory);
@@ -328,10 +330,10 @@ function PatrimonioScreen() {
             <Card style={{ padding: '16px 12px 10px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>Projeção até 2040</div>
-                <Tag label="Meta R$3M" color="#F59E0B" bg="#FFFBEB"/>
+                <Tag label={`Meta ${indepGoal.shortLabel}`} color="#F59E0B" bg="#FFFBEB"/>
               </div>
               <ChartBox height={130}>
-                {(w, h) => <AreaChart data={d.wealthForecast} width={w} height={h} goalValue={3000000} goalLabel="R$3M"/>}
+                {(w, h) => <AreaChart data={d.wealthForecast} width={w} height={h} goalValue={indepGoal.target} goalLabel={indepGoal.shortLabel}/>}
               </ChartBox>
             </Card>
 
@@ -476,9 +478,9 @@ function PatrimonioScreen() {
             <>
               <Card style={{ padding: '16px 12px 10px' }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>Proje\u00e7\u00e3o de Independ\u00eancia</div>
-                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10 }}>Meta de R$ 3 milh\u00f5es em 2029</div>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10 }}>Meta de {indepGoal.shortLabel} em {indepGoal.year}</div>
                 <ChartBox height={120}>
-                  {(w, h) => <AreaChart data={d.wealthForecast} width={w} height={h} goalValue={3000000} goalLabel="Independ\u00eancia"/>}
+                  {(w, h) => <AreaChart data={d.wealthForecast} width={w} height={h} goalValue={indepGoal.target} goalLabel="Independ\u00eancia"/>}
                 </ChartBox>
               </Card>
               <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Objetivos</div>
@@ -568,6 +570,7 @@ function PatrimonioScreen() {
 
 /* ── Mais ───────────────────────────────────────────── */
 function MaisScreen({ user, syncStatus, dark, onToggleDark, repasse, onShowRepasse, onShowGestao, onShowGestaoContas, onShowIndependencia, onShowTributario, onShowComparativo, onShowCalculadora, onShowSimulador, onShowRelatorio, onShowPGBL, onShowScore, onShowPlanilha }) {
+  const d = useFinance();
   const { logout } = useAuth();
   const qc = useQueryClient();
   const { pending, online } = useSyncStatus();
@@ -618,6 +621,8 @@ function MaisScreen({ user, syncStatus, dark, onToggleDark, repasse, onShowRepas
     pickAndImportFile(() => {
       refreshAll();
       toast.success('Dados importados com sucesso');
+    }, (e) => {
+      toast.error(e?.message || 'Arquivo inválido');
     });
   };
 
@@ -663,7 +668,7 @@ function MaisScreen({ user, syncStatus, dark, onToggleDark, repasse, onShowRepas
       title: 'Organização',
       items: [
         { icon: '◉', label: 'Contas e cartões', desc: 'Saldos PF/PJ e faturas', action: onShowGestaoContas },
-        { icon: '↺', label: 'Recorrências',    desc: '8 lançamentos fixos',   action: onShowPlanilha },
+        { icon: '↺', label: 'Recorrências',    desc: `${d.monthlyEvents?.length || 0} lançamentos fixos`,   action: onShowPlanilha },
       ],
     },
     {

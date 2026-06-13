@@ -94,3 +94,7 @@ DATABASE_URL=${{Postgres.DATABASE_URL}}
 2. Conecte o Postgres ao serviço FinApp (referência `DATABASE_URL`)
 3. Defina `JWT_SECRET` e `NODE_ENV=production`
 4. Gere domínio público em **Settings → Networking**
+
+## Versão final
+
+Guia passo a passo em **[VERSAO_FINAL.md](./VERSAO_FINAL.md)** — conta pessoal, dados reais, validação PWA e checklist de uso diário.

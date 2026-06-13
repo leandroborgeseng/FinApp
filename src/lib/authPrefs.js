@@ -6,7 +6,7 @@ export function loadSavedLogin() {
   const remember = localStorage.getItem(REMEMBER_KEY) !== '0';
   const email = localStorage.getItem(EMAIL_KEY)
     || localStorage.getItem('fin_user_email')
-    || 'demo@finapp.com';
+    || '';
   const password = remember ? (localStorage.getItem(PASS_KEY) || '') : '';
   return { email, password, remember };
 }

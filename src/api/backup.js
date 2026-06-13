@@ -37,7 +37,7 @@ export async function downloadBackup() {
   return backup;
 }
 
-export function pickAndImportFile(onSuccess) {
+export function pickAndImportFile(onSuccess, onError) {
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = '.json,application/json';
@@ -53,7 +53,7 @@ export function pickAndImportFile(onSuccess) {
       await importData(data);
       onSuccess?.();
     } catch (e) {
-      alert(e.message || 'Arquivo inválido');
+      onError?.(e);
     }
   };
   input.click();

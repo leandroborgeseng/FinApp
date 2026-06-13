@@ -20,6 +20,9 @@ router.post('/login', rateLimitAuth, async (req, res) => {
 });
 
 router.post('/register', rateLimitAuth, async (req, res) => {
+  if (process.env.NODE_ENV === 'production' && process.env.ALLOW_REGISTER !== 'true') {
+    return res.status(403).json({ error: 'Registro desabilitado em produção' });
+  }
   const { email, password, name } = req.body || {};
   if (!email || !password) return res.status(400).json({ error: 'E-mail e senha obrigatórios' });
   if (password.length < 6) return res.status(400).json({ error: 'Senha deve ter ao menos 6 caracteres' });

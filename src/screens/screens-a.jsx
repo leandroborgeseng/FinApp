@@ -608,6 +608,9 @@ function MovimentosScreen({ transactions, txActions, defaultFilter }) {
   };
   const deleteTx = (id) => {
     if (!txActions) return;
+    const tx = filtered.find((t) => t.id === id);
+    if (!tx) return;
+    if (!window.confirm(`Excluir "${tx.desc}"?`)) return;
     txActions.remove(id);
     setExpanded(null);
   };

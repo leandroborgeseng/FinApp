@@ -92,9 +92,11 @@ function NovoLancamentoModal({ onClose, onSave, onSaveFinancing }) {
     financ:   { label: 'Financiamento', color: '#EA580C', bg: '#FFF7ED' },
   };
 
+  const parsedValue = parseFloat(String(value).replace(',', '.')) || 0;
+
   const canSave = isFinanc
     ? (fDesc.trim() && principal > 0 && cetAnual > 0 && nParcelas > 0)
-    : (desc.trim() && value);
+    : (desc.trim() && parsedValue > 0);
 
   const handleSave = () => {
     if (!canSave) return;
@@ -102,7 +104,7 @@ function NovoLancamentoModal({ onClose, onSave, onSaveFinancing }) {
       const schedule = generateSchedule({ principal, cetAnual, seguroAnual: seguro, sistema: fSistema, nParcelas, diaVenc: fDiaVenc, startDate: fStartDate, entity: fEntity, desc: fDesc });
       onSaveFinancing?.({ id: Date.now(), desc: fDesc, principal, cetAnual, seguroAnual: seguro, sistema: fSistema, nParcelas, diaVenc: fDiaVenc, startDate: fStartDate, entity: fEntity, pmtTotal: Math.round(pmtTotal*100)/100, schedule });
     } else {
-      onSave?.({ type, desc, value: parseFloat(String(value).replace(',','.')), account, cat, date, status });
+      onSave?.({ type, desc, value: parsedValue, account, cat, date, status });
     }
     onClose();
   };

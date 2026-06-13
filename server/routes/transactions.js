@@ -2,6 +2,8 @@ import { Router } from 'express';
 import * as store from '../store/index.js';
 import { authRequired } from '../middleware/auth.js';
 
+import { validateTransaction } from '../utils/validateTx.js';
+
 const router = Router();
 
 router.use(authRequired);
@@ -13,9 +15,8 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   const { desc, value, type, entity, date, cat, done } = req.body || {};
-  if (!desc || !value || !type || !entity || !date) {
-    return res.status(400).json({ error: 'Campos obrigatórios: desc, value, type, entity, date' });
-  }
+  const err = validateTransaction({ desc, value, type, entity, date });
+  if (err) return res.status(400).json({ error: err });
   const tx = await store.createTransaction(req.user.id, { desc, value, type, entity, date, cat, done });
   res.status(201).json(tx);
 });
@@ -26,9 +27,8 @@ router.post('/bulk', async (req, res) => {
     return res.status(400).json({ error: 'Envie transactions como array' });
   }
   for (const tx of list) {
-    if (!tx.desc || !tx.value || !tx.type || !tx.entity || !tx.date) {
-      return res.status(400).json({ error: 'Cada item precisa de desc, value, type, entity, date' });
-    }
+    const err = validateTransaction(tx);
+    if (err) return res.status(400).json({ error: err });
   }
   const created = await store.createTransactionsBulk(req.user.id, list);
   res.status(201).json(created);
@@ -41,7 +41,8 @@ router.put('/:id', async (req, res) => {
 });
 
 router.delete('/:id', async (req, res) => {
-  await store.deleteTransaction(req.user.id, req.params.id);
+  const deleted = await store.deleteTransaction(req.user.id, req.params.id);
+  if (!deleted) return res.status(404).json({ error: 'Não encontrado' });
   res.json({ ok: true });
 });
 

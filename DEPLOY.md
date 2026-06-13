@@ -72,16 +72,20 @@ Acesse `https://seu-app.up.railway.app`
 
 ## 6. Primeiro acesso
 
-Após o deploy com Postgres conectado:
+Após o deploy com Postgres conectado, o servidor cria o usuário demo **apenas se ele não existir** (a senha não é alterada em redeploys).
 
 | Campo | Valor |
 |-------|-------|
 | E-mail | `demo@finapp.com` |
 | Senha | `finapp2026` |
 
-O servidor cria automaticamente o usuário demo e popula os dados na primeira subida.
+### Configurar conta pessoal
 
-Para desabilitar o seed demo no futuro, adicione `SEED_DEMO_USER=false`.
+1. Faça login com o demo e use o app normalmente, **ou**
+2. Defina `ALLOW_REGISTER=true`, crie sua conta via API (`POST /api/auth/register`), depois volte `ALLOW_REGISTER=false`
+3. Quando estiver estável, adicione `SEED_DEMO_USER=false` para não criar o demo em ambientes novos
+
+> Checklist completo em **[VERSAO_FINAL.md](./VERSAO_FINAL.md)**
 
 ## 7. Verificar se funcionou
 
@@ -90,6 +94,8 @@ Logs do deploy devem mostrar:
 ```
 [db] Migrations aplicadas
 [db] Usuário demo criado: demo@finapp.com / finapp2026
+# ou, se já existir:
+[db] Usuário demo já existe (demo@finapp.com) — senha mantida
 FinApp rodando em http://0.0.0.0:XXXX (produção)
 [config] DB: PostgreSQL
 ```

@@ -56,8 +56,7 @@ export async function ensureDemoUser() {
   const { rows } = await query('SELECT id FROM users WHERE email = $1', [DEMO_EMAIL]);
 
   if (rows.length > 0) {
-    await query('UPDATE users SET password_hash = $1 WHERE email = $2', [hash, DEMO_EMAIL]);
-    console.log(`[db] Senha demo atualizada: ${DEMO_EMAIL} / ${DEMO_PASSWORD}`);
+    console.log(`[db] Usuário demo já existe (${DEMO_EMAIL}) — senha mantida`);
     return rows[0].id;
   }
 

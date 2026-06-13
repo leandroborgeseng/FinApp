@@ -182,11 +182,12 @@ export async function updateTransaction(userId, id, patch) {
 
 export async function deleteTransaction(userId, id) {
   if (getPool()) {
-    await query('DELETE FROM transactions WHERE user_id = $1 AND id = $2', [userId, id]);
-  } else {
-    memory.transactions = memory.transactions.filter((t) => t.id !== id);
+    const result = await query('DELETE FROM transactions WHERE user_id = $1 AND id = $2', [userId, id]);
+    return (result.rowCount ?? 0) > 0;
   }
-  return true;
+  const before = memory.transactions.length;
+  memory.transactions = memory.transactions.filter((t) => t.id !== id);
+  return memory.transactions.length < before;
 }
 
 export async function replaceTransactions(userId, list) {

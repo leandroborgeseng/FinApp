@@ -1,9 +1,9 @@
 import React from 'react';
 import { fmt } from '../data.js';
+import { currentMonthKey, repasseMonthIndex } from '../lib/dates.js';
 import { useFinance } from '../hooks/useFinance.jsx';
 import { AreaChart, ChartBox } from '../components/charts.jsx';
 import { Card, Tag } from './screens-a.jsx';
-import { currentMonthKey } from '../lib/dates.js';
 // screens-analise.jsx — Orçado vs. Realizado · Independência · Tributário
 
 /* ─────────────────────────────────────────────────────
@@ -270,6 +270,8 @@ function IndependenciaScreen({ onBack }) {
 function TributarioScreen({ onBack }) {
   const d = useFinance();
   const MB = d.monthlyBudget;
+  const repasseIdx = repasseMonthIndex(d.repasse);
+  const repasseAmt = d.repasse?.months?.[repasseIdx]?.amount ?? 0;
 
   // Annual projected PJ revenue (next 12 months)
   const next12     = MB.slice(0, 12);
@@ -322,7 +324,7 @@ function TributarioScreen({ onBack }) {
     const base = pl - inss;
     const ir   = Math.round(calcIR(base));
     const net  = pl - inss - ir;
-    const div  = 34000 - pl;
+    const div  = repasseAmt - pl;
     const netTotal = net + div;
     const taxes    = inss + ir;
     return { pl, inss, ir, net, div, netTotal, taxes };

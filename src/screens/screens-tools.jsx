@@ -4,6 +4,7 @@ import { useFinance } from '../hooks/useFinance.jsx';
 import { AreaChart, DonutChart, ChartBox } from '../components/charts.jsx';
 import { Card } from './screens-a.jsx';
 import { downloadMonthlyReportCsv } from '../lib/reportExport.js';
+import { independenceGoal } from '../lib/goals.js';
 // screens-tools.jsx — Simulador E-Se · Relatório · PGBL · Score
 
 /* ─────────────────────────────────────────────────────
@@ -11,9 +12,10 @@ import { downloadMonthlyReportCsv } from '../lib/reportExport.js';
    ───────────────────────────────────────────────────── */
 function SimuladorESeScreen({ onBack }) {
   const d = useFinance();
-  const patrimonio   = d.netWorth;        // R$ 1.250.000
-  const sobraAtual   = d.monthResult;     // R$ 46.448/mês
-  const meta         = 3000000;
+  const indep = independenceGoal(d.goals);
+  const patrimonio   = d.netWorth;
+  const sobraAtual   = d.monthResult;
+  const meta         = indep.target;
   const taxaAnual    = 12.68;             // CDB 1%/mês
   const r            = Math.pow(1 + taxaAnual / 100, 1 / 12) - 1;
   const [extra, setExtra] = React.useState(0);
@@ -141,7 +143,7 @@ function SimuladorESeScreen({ onBack }) {
             </select>
           </div>
           <ChartBox height={120}>
-            {(w, h) => <AreaChart data={curveBase} width={w} height={h} color="#2563EB" goalValue={meta} goalLabel="R$3M"/>}
+            {(w, h) => <AreaChart data={curveBase} width={w} height={h} color="#2563EB" goalValue={meta} goalLabel={indep.shortLabel}/>}
           </ChartBox>
           {curveExtra && (
             <ChartBox height={120}>
