@@ -99,10 +99,20 @@ function isNetworkFailure(err) {
   return /fetch|network|failed/i.test(err.message || '');
 }
 
+const PUBLIC_AUTH_PATHS = ['/auth/login', '/auth/register', '/auth/refresh'];
+
+function isPublicAuth(path) {
+  return PUBLIC_AUTH_PATHS.some((p) => path === p || path.startsWith(`${p}?`));
+}
+
 export function createOfflineAwareFetch(rawApiFetch) {
   async function apiFetch(path, options = {}) {
     const method = (options.method || 'GET').toUpperCase();
     const key = cacheKey(method, path);
+
+    if (isPublicAuth(path)) {
+      return rawApiFetch(path, options);
+    }
 
     if (method === 'GET') {
       try {

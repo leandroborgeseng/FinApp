@@ -5,7 +5,15 @@ import {
   getFullSyncStatus,
 } from '../store/offlineQueue.js';
 
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const API_BASE = import.meta.env.PROD
+  ? '/api'
+  : (import.meta.env.VITE_API_URL || '/api');
+
+const PUBLIC_AUTH_PATHS = ['/auth/login', '/auth/register', '/auth/refresh'];
+
+function isPublicAuth(path) {
+  return PUBLIC_AUTH_PATHS.some((p) => path === p || path.startsWith(`${p}?`));
+}
 
 const TOKEN_KEY = 'fin_access_token';
 const REFRESH_KEY = 'fin_refresh_token';
@@ -53,7 +61,8 @@ async function refreshAccessToken() {
 
 export async function rawApiFetch(path, options = {}) {
   const headers = { 'Content-Type': 'application/json', ...options.headers };
-  const token = getAccessToken();
+  const publicRoute = isPublicAuth(path);
+  const token = publicRoute ? null : getAccessToken();
   if (token) headers.Authorization = `Bearer ${token}`;
 
   let res;
@@ -63,7 +72,7 @@ export async function rawApiFetch(path, options = {}) {
     throw err;
   }
 
-  if (res.status === 401 && getRefreshToken()) {
+  if (!publicRoute && res.status === 401 && getRefreshToken()) {
     const newToken = await refreshAccessToken();
     if (newToken) {
       headers.Authorization = `Bearer ${newToken}`;

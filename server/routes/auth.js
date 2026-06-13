@@ -5,7 +5,8 @@ import { authRequired } from '../middleware/auth.js';
 const router = Router();
 
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body || {};
+  const email = (req.body?.email || '').trim().toLowerCase();
+  const password = (req.body?.password || '').trim();
   if (!email || !password) return res.status(400).json({ error: 'E-mail e senha obrigatórios' });
   const result = await store.loginUser(email, password);
   if (result.error) return res.status(result.status).json({ error: result.error });

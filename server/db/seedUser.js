@@ -51,10 +51,15 @@ export function buildSnapshotData() {
 export async function ensureDemoUser() {
   if (process.env.SEED_DEMO_USER === 'false') return null;
 
-  const { rows } = await query('SELECT id FROM users WHERE email = $1', [DEMO_EMAIL]);
-  if (rows.length > 0) return rows[0].id;
-
   const hash = await bcrypt.hash(DEMO_PASSWORD, 10);
+  const { rows } = await query('SELECT id FROM users WHERE email = $1', [DEMO_EMAIL]);
+
+  if (rows.length > 0) {
+    await query('UPDATE users SET password_hash = $1 WHERE email = $2', [hash, DEMO_EMAIL]);
+    console.log(`[db] Senha demo atualizada: ${DEMO_EMAIL} / ${DEMO_PASSWORD}`);
+    return rows[0].id;
+  }
+
   const { rows: created } = await query(
     `INSERT INTO users (email, password_hash, name, plan)
      VALUES ($1, $2, $3, $4) RETURNING id`,

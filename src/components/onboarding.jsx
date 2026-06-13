@@ -56,12 +56,26 @@ function OnboardingApp() {
   ];
 
   const handleLogin = async () => {
-    if (!email) { setErro('Informe seu e-mail'); return; }
-    if (!senha)  { setErro('Informe sua senha'); return; }
+    if (!email.trim()) { setErro('Informe seu e-mail'); return; }
+    if (!senha.trim())  { setErro('Informe sua senha'); return; }
     setErro('');
     setLoading(true);
     try {
-      await login(email, senha);
+      await login(email.trim(), senha);
+    } catch (e) {
+      setErro(e.message || 'Falha no login');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDemoLogin = async () => {
+    setEmail('demo@finapp.com');
+    setSenha('finapp2026');
+    setErro('');
+    setLoading(true);
+    try {
+      await login('demo@finapp.com', 'finapp2026');
     } catch (e) {
       setErro(e.message || 'Falha no login');
     } finally {
@@ -249,10 +263,17 @@ function OnboardingApp() {
           </div>
 
           {/* Demo hint */}
-          <div style={{ padding: '0 28px 36px' }}>
-            <div style={{ background: '#EFF6FF', borderRadius: 12, padding: '12px 14px', border: '1px solid #DBEAFE' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#2563EB', marginBottom: 2 }}>Modo demonstração</div>
-              <div style={{ fontSize: 11, color: '#3B82F6' }}>Demo: <strong>demo@finapp.com</strong> / <strong>finapp2026</strong></div>
+          <div style={{ padding: '0 28px 36px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <button onClick={handleDemoLogin} disabled={loading} style={{
+              width: '100%', padding: '12px', borderRadius: 12, border: '1.5px solid #2563EB',
+              background: '#EFF6FF', color: '#2563EB', fontSize: 14, fontWeight: 700,
+              cursor: loading ? 'default' : 'pointer', fontFamily: 'DM Sans, system-ui',
+            }}>
+              Entrar com conta demo
+            </button>
+            <div style={{ background: '#F7F8FA', borderRadius: 12, padding: '12px 14px', border: '1px solid #ECEEF4' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#8B90A0', marginBottom: 2 }}>Credenciais demo</div>
+              <div style={{ fontSize: 11, color: '#8B90A0' }}>demo@finapp.com · finapp2026</div>
             </div>
           </div>
         </div>
