@@ -12,7 +12,18 @@ Checklist para considerar o app **pronto para uso diário**.
 
 ## 2. Dados reais (G5)
 
-O seed inicial vem de `src/data.js`. **Após o primeiro deploy**, ajuste pelo app:
+O seed inicial vem de `src/data.js`. **Na primeira subida** (ou se ainda não carregou), o servidor aplica automaticamente:
+
+- Orçamento 31 meses (Jun/26 → Dez/28)
+- 22 recorrências da planilha
+- **22 lançamentos de Jun/26** gerados das recorrências (marcados realizados se o dia já passou)
+- Patrimônio, contas, investimentos, metas e repasse
+
+Depois disso você ajusta pelo app. Para **forçar recarga** da planilha (apaga lançamentos atuais):
+
+```bash
+npm run seed:spreadsheet -- --force
+```
 
 1. **Patrimônio** → saldos, investimentos, metas
 2. **Gestão** → orçamento, financiamentos, contas

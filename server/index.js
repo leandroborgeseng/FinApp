@@ -5,6 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { runMigrations } from './db/pool.js';
 import { ensureDemoUser } from './db/seedUser.js';
+import { ensureAllSpreadsheetsLoaded } from './utils/spreadsheetSeed.js';
 import authRoutes from './routes/auth.js';
 import transactionRoutes from './routes/transactions.js';
 import bootstrapRoutes from './routes/bootstrap.js';
@@ -52,7 +53,10 @@ async function start() {
   }
 
   const hasDb = await runMigrations();
-  if (hasDb) await ensureDemoUser();
+  if (hasDb) {
+    await ensureDemoUser();
+    await ensureAllSpreadsheetsLoaded();
+  }
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`FinApp rodando em http://0.0.0.0:${PORT}${isProd ? ' (produção)' : ''}`);

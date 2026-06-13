@@ -270,7 +270,8 @@ export async function registerUser(email, password, name) {
       [email.toLowerCase().trim(), hash, name || email.split('@')[0]],
     );
     const user = rows[0];
-    await seedUserData(user.id);
+    const { reapplySpreadsheetSeed } = await import('../utils/spreadsheetSeed.js');
+    await reapplySpreadsheetSeed(user.id);
     const accessToken = signAccessToken(user);
     const refreshToken = await createRefreshToken(user.id);
     return { accessToken, refreshToken, user };

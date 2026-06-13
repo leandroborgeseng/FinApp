@@ -10,7 +10,8 @@
     "build": "node scripts/generate-icons.mjs && vite build",
     "start": "node server/index.js",
     "preview": "vite preview",
-    "db:migrate": "node server/db/migrate.js"
+    "db:migrate": "node server/db/migrate.js",
+    "seed:spreadsheet": "node scripts/seed-spreadsheet.mjs"
   },
   "engines": {
     "node": ">=20"
