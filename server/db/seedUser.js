@@ -69,7 +69,7 @@ export async function ensureDemoUser() {
 
   for (const tx of AppData.transactions) {
     await query(
-      `INSERT INTO transactions (id, user_id, desc, value, type, entity, date, done, cat)
+      `INSERT INTO transactions (id, user_id, description, value, type, entity, date, done, cat)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
       [String(tx.id), userId, tx.desc, tx.value, tx.type, tx.entity, tx.date, tx.done, tx.cat],
     );

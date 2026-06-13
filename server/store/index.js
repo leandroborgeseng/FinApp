@@ -112,9 +112,15 @@ export async function getUserById(id) {
 }
 
 // ── Transactions ───────────────────────────────────────
+const TX_COLS = 'id, description AS desc, value, type, entity, date, done, cat';
+
+function txDbColumn(key) {
+  return key === 'desc' ? 'description' : key;
+}
+
 export async function listTransactions(userId, { month, entity } = {}) {
   if (getPool()) {
-    let sql = 'SELECT id, desc, value, type, entity, date, done, cat FROM transactions WHERE user_id = $1';
+    let sql = `SELECT ${TX_COLS} FROM transactions WHERE user_id = $1`;
     const params = [userId];
     if (month) { params.push(`${month}%`); sql += ` AND date LIKE $${params.length}`; }
     if (entity && entity !== 'all') { params.push(entity); sql += ` AND entity = $${params.length}`; }
@@ -132,7 +138,7 @@ export async function createTransaction(userId, data) {
   const tx = { id: String(Date.now()), done: false, ...data };
   if (getPool()) {
     await query(
-      `INSERT INTO transactions (id, user_id, desc, value, type, entity, date, done, cat)
+      `INSERT INTO transactions (id, user_id, description, value, type, entity, date, done, cat)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
       [tx.id, userId, tx.desc, tx.value, tx.type, tx.entity, tx.date, tx.done, tx.cat],
     );
@@ -149,13 +155,13 @@ export async function updateTransaction(userId, id, patch) {
     for (const key of ['desc', 'value', 'type', 'entity', 'date', 'done', 'cat']) {
       if (patch[key] !== undefined) {
         params.push(patch[key]);
-        fields.push(`${key} = $${params.length}`);
+        fields.push(`${txDbColumn(key)} = $${params.length}`);
       }
     }
     if (fields.length === 0) return null;
     fields.push('updated_at = NOW()');
     const { rows } = await query(
-      `UPDATE transactions SET ${fields.join(', ')} WHERE user_id = $1 AND id = $2 RETURNING id, desc, value, type, entity, date, done, cat`,
+      `UPDATE transactions SET ${fields.join(', ')} WHERE user_id = $1 AND id = $2 RETURNING ${TX_COLS}`,
       params,
     );
     return rows[0] || null;
@@ -180,10 +186,10 @@ export async function replaceTransactions(userId, list) {
     await query('DELETE FROM transactions WHERE user_id = $1', [userId]);
     for (const tx of list) {
       await query(
-        `INSERT INTO transactions (id, user_id, desc, value, type, entity, date, done, cat)
+        `INSERT INTO transactions (id, user_id, description, value, type, entity, date, done, cat)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-         ON CONFLICT (id) DO UPDATE SET
-           desc = EXCLUDED.desc, value = EXCLUDED.value, type = EXCLUDED.type,
+         ON CONFLICT (user_id, id) DO UPDATE SET
+           description = EXCLUDED.description, value = EXCLUDED.value, type = EXCLUDED.type,
            entity = EXCLUDED.entity, date = EXCLUDED.date, done = EXCLUDED.done, cat = EXCLUDED.cat`,
         [tx.id, userId, tx.desc, tx.value, tx.type, tx.entity, tx.date, tx.done ?? false, tx.cat],
       );

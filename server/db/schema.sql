@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
 CREATE TABLE IF NOT EXISTS transactions (
   id TEXT NOT NULL,
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  desc TEXT NOT NULL,
+  description TEXT NOT NULL,
   value INTEGER NOT NULL,
   type TEXT NOT NULL CHECK (type IN ('income', 'expense', 'transfer', 'invest')),
   entity TEXT NOT NULL CHECK (entity IN ('PF', 'PJ')),
