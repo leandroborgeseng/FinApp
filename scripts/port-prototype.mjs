@@ -24,11 +24,7 @@ const FILE_CONFIG = {
     header: "import React from 'react';\n",
     exports: 'export { BottomNav, FAB, SyncBadge };',
   },
-  'ios-frame.jsx': {
-    dest: 'components/ios-frame.jsx',
-    header: "import React from 'react';\n",
-    exports: 'export { IOSDevice, IOSStatusBar, IOSNavBar, IOSGlassPill, IOSList, IOSListRow, IOSKeyboard };',
-  },
+  'ios-frame.jsx': null,
   'onboarding.jsx': {
     dest: 'components/onboarding.jsx',
     header: "import React from 'react';\n",
@@ -123,6 +119,10 @@ import { fmt } from '../data.js';
 };
 
 for (const [srcFile, cfg] of Object.entries(FILE_CONFIG)) {
+  if (!cfg) {
+    console.log('Skipped:', srcFile);
+    continue;
+  }
   const content = fs.readFileSync(path.join(SRC, srcFile), 'utf8');
   const cleaned = content
     .replace(/^\/\/.*\n/gm, (m, offset) => {

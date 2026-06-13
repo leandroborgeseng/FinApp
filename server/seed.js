@@ -8,6 +8,7 @@ export function createSeedData() {
     investments: JSON.parse(JSON.stringify(AppData.investments)),
     financingList: AppData.financingList.map((f) => ({ ...f })),
     goals: AppData.goals.map((g) => ({ ...g })),
+    accounts: AppData.accounts.map((a) => ({ ...a })),
     repasse: {
       day: 5,
       monthlyLimit: 50000,

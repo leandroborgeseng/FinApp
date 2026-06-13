@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import * as store from '../store/index.js';
 import { authRequired } from '../middleware/auth.js';
+import { rateLimitAuth } from '../middleware/rateLimit.js';
 
 const router = Router();
 
-router.post('/login', async (req, res) => {
+router.post('/login', rateLimitAuth, async (req, res) => {
   const email = (req.body?.email || '').trim().toLowerCase();
   const password = (req.body?.password || '').trim();
   if (!email || !password) return res.status(400).json({ error: 'E-mail e senha obrigatórios' });
@@ -18,7 +19,7 @@ router.post('/login', async (req, res) => {
   });
 });
 
-router.post('/register', async (req, res) => {
+router.post('/register', rateLimitAuth, async (req, res) => {
   const { email, password, name } = req.body || {};
   if (!email || !password) return res.status(400).json({ error: 'E-mail e senha obrigatórios' });
   if (password.length < 6) return res.status(400).json({ error: 'Senha deve ter ao menos 6 caracteres' });

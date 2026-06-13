@@ -1,5 +1,16 @@
 import React from 'react';
+import { useContainerWidth } from '../hooks/useContainerWidth.js';
 // charts.jsx — SVG chart primitives
+
+function ChartBox({ height, minWidth = 200, style, children }) {
+  const ref = React.useRef(null);
+  const width = useContainerWidth(ref, minWidth);
+  return (
+    <div ref={ref} style={{ width: '100%', lineHeight: 0, ...style }}>
+      {width > 0 && children(width, height)}
+    </div>
+  );
+}
 
 function SparkLine({ data, width = 200, height = 48, color = '#2563EB' }) {
   if (!data || data.length < 2) return null;
@@ -45,9 +56,9 @@ function BarChart({ data, width = 320, height = 130 }) {
 
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
-      <line x1={pL} y1={pT+cH} x2={width-pR} y2={pT+cH} stroke="#ECEEF4" strokeWidth="1"/>
+      <line x1={pL} y1={pT+cH} x2={width-pR} y2={pT+cH} stroke="var(--chart-grid)" strokeWidth="1"/>
       {[0.5].map(f => (
-        <line key={f} x1={pL} y1={pT+cH*(1-f)} x2={width-pR} y2={pT+cH*(1-f)} stroke="#ECEEF4" strokeWidth="0.5" strokeDasharray="3,3"/>
+        <line key={f} x1={pL} y1={pT+cH*(1-f)} x2={width-pR} y2={pT+cH*(1-f)} stroke="var(--chart-grid)" strokeWidth="0.5" strokeDasharray="3,3"/>
       ))}
       {data.map((d, i) => {
         const cx = pL + i * gW + gW / 2;
@@ -57,7 +68,7 @@ function BarChart({ data, width = 320, height = 130 }) {
           <g key={i}>
             <rect x={cx - bW - 1} y={pT+cH-iH} width={bW} height={iH} rx="2.5" fill="#22C55E" opacity="0.8"/>
             <rect x={cx + 1} y={pT+cH-eH} width={bW} height={eH} rx="2.5" fill="#EF4444" opacity="0.65"/>
-            <text x={cx} y={height - 5} textAnchor="middle" fontSize="7.5" fill="#8B90A0" fontFamily="DM Sans, system-ui">{d.label}</text>
+            <text x={cx} y={height - 5} textAnchor="middle" fontSize="7.5" fill="var(--chart-label)" fontFamily="DM Sans, system-ui">{d.label}</text>
           </g>
         );
       })}
@@ -91,7 +102,7 @@ function AreaChart({ data, width = 320, height = 130, goalValue, goalLabel, colo
         </linearGradient>
       </defs>
       {[0.33, 0.66, 1].map(f => (
-        <line key={f} x1={pL} y1={py(max*f)} x2={width-pR} y2={py(max*f)} stroke="#ECEEF4" strokeWidth="0.8"/>
+        <line key={f} x1={pL} y1={py(max*f)} x2={width-pR} y2={py(max*f)} stroke="var(--chart-grid)" strokeWidth="0.8"/>
       ))}
       {goalY !== null && goalY !== undefined && (
         <>
@@ -103,18 +114,19 @@ function AreaChart({ data, width = 320, height = 130, goalValue, goalLabel, colo
       <path d={line} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
       <circle cx={pts[pts.length-1][0]} cy={pts[pts.length-1][1]} r="3.5" fill={color}/>
       {[0.33, 0.66, 1].map(f => (
-        <text key={f} x={pL-4} y={py(max*f)+3} textAnchor="end" fontSize="7" fill="#8B90A0" fontFamily="DM Sans, system-ui">{fmtShort(max*f)}</text>
+        <text key={f} x={pL-4} y={py(max*f)+3} textAnchor="end" fontSize="7" fill="var(--chart-label)" fontFamily="DM Sans, system-ui">{fmtShort(max*f)}</text>
       ))}
       {data.map((d, i) => (i % step === 0 || i === data.length - 1) && (
-        <text key={i} x={px(i)} y={height - 4} textAnchor="middle" fontSize="7.5" fill="#8B90A0" fontFamily="DM Sans, system-ui">{d.year || d.label}</text>
+        <text key={i} x={px(i)} y={height - 4} textAnchor="middle" fontSize="7.5" fill="var(--chart-label)" fontFamily="DM Sans, system-ui">{d.year || d.label}</text>
       ))}
     </svg>
   );
 }
 
-function CashFlowStepChart({ events, startBalance = 0, width = 320, height = 130 }) {
+function CashFlowStepChart({ events, startBalance = 0, width = 320, height = 130, daysInMonth = 31, todayDay = null }) {
   if (!events?.length) return null;
   const sorted = [...events].sort((a, b) => a.day - b.day);
+  const lastDay = daysInMonth;
 
   // Build step points: [{ day, balance, type }]
   const steps = [{ day: 0, balance: startBalance, type: null }];
@@ -124,8 +136,8 @@ function CashFlowStepChart({ events, startBalance = 0, width = 320, height = 130
     running += delta;
     steps.push({ day: e.day, balance: running, type: e.type, desc: e.desc, value: e.value });
   }
-  if (steps[steps.length - 1].day < 31)
-    steps.push({ day: 31, balance: running, type: null });
+  if (steps[steps.length - 1].day < lastDay)
+    steps.push({ day: lastDay, balance: running, type: null });
 
   const balances   = steps.map(s => s.balance);
   const minB       = Math.min(...balances);
@@ -136,7 +148,7 @@ function CashFlowStepChart({ events, startBalance = 0, width = 320, height = 130
 
   const pL = 46, pR = 10, pT = 10, pB = 24;
   const cW = width - pL - pR, cH = height - pT - pB;
-  const px = d  => pL + (d / 31) * cW;
+  const px = d  => pL + (d / lastDay) * cW;
   const py = b  => pT + cH - ((b - lo) / range) * cH;
 
   // Step path (horizontal first, then vertical)
@@ -144,14 +156,13 @@ function CashFlowStepChart({ events, startBalance = 0, width = 320, height = 130
   for (let i = 1; i < steps.length; i++) {
     linePath += `H${px(steps[i].day).toFixed(1)}V${py(steps[i].balance).toFixed(1)}`;
   }
-  const fillPath = `${linePath}H${px(31).toFixed(1)}V${(pT + cH).toFixed(1)}H${pL}Z`;
+  const fillPath = `${linePath}H${px(lastDay).toFixed(1)}V${(pT + cH).toFixed(1)}H${pL}Z`;
 
   const eventSteps = steps.filter(s => s.type);
   const yTicks = [minB, (minB + maxB) / 2, maxB];
   const uid = `csf${Math.round(startBalance)}`;
 
-  // Work out if today (day 10) is before/after each event to show "today" line
-  const todayDay = 10;
+  const showToday = todayDay != null && todayDay >= 1 && todayDay <= lastDay;
 
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} overflow="visible">
@@ -168,16 +179,20 @@ function CashFlowStepChart({ events, startBalance = 0, width = 320, height = 130
       {/* Grid lines */}
       {yTicks.map((t, i) => (
         <g key={i}>
-          <line x1={pL} y1={py(t)} x2={width - pR} y2={py(t)} stroke="#ECEEF4" strokeWidth="0.8"/>
-          <text x={pL - 4} y={py(t) + 3} textAnchor="end" fontSize="7" fill="#8B90A0" fontFamily="DM Sans, system-ui">
+          <line x1={pL} y1={py(t)} x2={width - pR} y2={py(t)} stroke="var(--chart-grid)" strokeWidth="0.8"/>
+          <text x={pL - 4} y={py(t) + 3} textAnchor="end" fontSize="7" fill="var(--chart-label)" fontFamily="DM Sans, system-ui">
             {fmtShort(t)}
           </text>
         </g>
       ))}
 
       {/* Today marker */}
-      <line x1={px(todayDay)} y1={pT} x2={px(todayDay)} y2={pT + cH} stroke="#F59E0B" strokeWidth="1.2" strokeDasharray="3,2" opacity="0.8"/>
-      <text x={px(todayDay)} y={pT - 2} textAnchor="middle" fontSize="7" fill="#F59E0B" fontFamily="DM Sans, system-ui">hoje</text>
+      {showToday && (
+        <>
+          <line x1={px(todayDay)} y1={pT} x2={px(todayDay)} y2={pT + cH} stroke="#F59E0B" strokeWidth="1.2" strokeDasharray="3,2" opacity="0.8"/>
+          <text x={px(todayDay)} y={pT - 2} textAnchor="middle" fontSize="7" fill="#F59E0B" fontFamily="DM Sans, system-ui">hoje</text>
+        </>
+      )}
 
       {/* Fill area */}
       <path d={fillPath} fill={`url(#${uid})`} clipPath={`url(#cp${uid})`}/>
@@ -190,9 +205,9 @@ function CashFlowStepChart({ events, startBalance = 0, width = 320, height = 130
         const col = s.type === 'income' ? '#22C55E' : s.type === 'transfer' ? '#2563EB' : '#EF4444';
         return (
           <g key={i}>
-            <line x1={px(s.day)} y1={pT + cH - 6} x2={px(s.day)} y2={pT + cH + 4} stroke="#ECEEF4" strokeWidth="1"/>
+            <line x1={px(s.day)} y1={pT + cH - 6} x2={px(s.day)} y2={pT + cH + 4} stroke="var(--chart-grid)" strokeWidth="1"/>
             <circle cx={px(s.day)} cy={py(s.balance)} r="4.5" fill={col} stroke="white" strokeWidth="1.5"/>
-            <text x={px(s.day)} y={height - 5} textAnchor="middle" fontSize="7.5" fill="#8B90A0" fontFamily="DM Sans, system-ui">{s.day}</text>
+            <text x={px(s.day)} y={height - 5} textAnchor="middle" fontSize="7.5" fill="var(--chart-label)" fontFamily="DM Sans, system-ui">{s.day}</text>
           </g>
         );
       })}
@@ -242,4 +257,4 @@ function DonutChart({ segments, size = 200, thickness = 30 }) {
   );
 }
 
-export { SparkLine, BarChart, AreaChart, CashFlowStepChart, DonutChart, fmtShort };
+export { SparkLine, BarChart, AreaChart, CashFlowStepChart, DonutChart, ChartBox, fmtShort };

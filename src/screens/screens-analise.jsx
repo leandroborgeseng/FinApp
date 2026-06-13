@@ -1,8 +1,8 @@
 import React from 'react';
 import { fmt } from '../data.js';
 import { useFinance } from '../hooks/useFinance.jsx';
-import { AreaChart } from '../components/charts.jsx';
-import { Card } from './screens-a.jsx';
+import { AreaChart, ChartBox } from '../components/charts.jsx';
+import { Card, Tag } from './screens-a.jsx';
 import { currentMonthKey } from '../lib/dates.js';
 // screens-analise.jsx — Orçado vs. Realizado · Independência · Tributário
 
@@ -49,19 +49,19 @@ function OrcadoVsRealizado({ transactions }) {
             const over = a > p && p > 0;
             return (
               <div key={cat}>
-                {i > 0 && <div style={{ height: 1, background: '#F4F5F8', margin: '0 12px' }}/>}
+                {i > 0 && <div style={{ height: 1, background: 'var(--divider)', margin: '0 12px' }}/>}
                 <div style={{ padding: '10px 14px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 5 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: '#1A1F36' }}>{cat}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{cat}</span>
                     <div style={{ display: 'flex', gap: 10, fontSize: 11, alignItems: 'baseline' }}>
-                      <span style={{ color: '#8B90A0' }}>{fmt(p)}</span>
+                      <span style={{ color: 'var(--text-muted)' }}>{fmt(p)}</span>
                       <span style={{ fontWeight: 700, color: accentColor }}>{fmt(a)}</span>
                       {p > 0 && (
                         <span style={{
                           fontSize: 10, fontWeight: 700,
                           color: isIncome
                             ? (pct >= 100 ? '#16A34A' : '#F59E0B')
-                            : (over ? '#DC2626' : pct >= 80 ? '#F59E0B' : '#8B90A0'),
+                            : (over ? '#DC2626' : pct >= 80 ? '#F59E0B' : 'var(--text-muted)'),
                           background: isIncome
                             ? (pct >= 100 ? '#F0FDF4' : '#FFFBEB')
                             : (over ? '#FEF2F2' : pct >= 80 ? '#FFFBEB' : '#F4F5F8'),
@@ -70,7 +70,7 @@ function OrcadoVsRealizado({ transactions }) {
                       )}
                     </div>
                   </div>
-                  <div style={{ height: 4, background: '#F0F1F5', borderRadius: 2, overflow: 'hidden' }}>
+                  <div style={{ height: 4, background: 'var(--bg-subtle)', borderRadius: 2, overflow: 'hidden' }}>
                     <div style={{
                       width: `${pct}%`, height: '100%', borderRadius: 2,
                       background: isIncome
@@ -101,12 +101,12 @@ function OrcadoVsRealizado({ transactions }) {
           { label: 'Dia do mês',        val: '11/31',       col: '#2563EB', isDay: true },
         ].map((s, i) => (
           <Card key={i} style={{ padding: '10px 11px', textAlign: 'center' }}>
-            <div style={{ fontSize: 9, color: '#8B90A0', marginBottom: 3, lineHeight: 1.3 }}>{s.label}</div>
+            <div style={{ fontSize: 9, color: 'var(--text-muted)', marginBottom: 3, lineHeight: 1.3 }}>{s.label}</div>
             <div style={{ fontSize: 13, fontWeight: 800, color: s.col }}>
               {s.isDay ? s.val : `${s.pct}%`}
             </div>
             {!s.isDay && (
-              <div style={{ fontSize: 9, color: '#8B90A0', marginTop: 2 }}>
+              <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>
                 {fmt(s.actual, {short:true})} / {fmt(s.plan, {short:true})}
               </div>
             )}
@@ -115,9 +115,9 @@ function OrcadoVsRealizado({ transactions }) {
       </div>
 
       {/* Legend */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 10, color: '#8B90A0', paddingLeft: 2 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 10, color: 'var(--text-muted)', paddingLeft: 2 }}>
         <span>Orçado: valor planejado</span>
-        <span style={{ fontWeight: 700, color: '#1A1F36' }}>Realizado: valor confirmado</span>
+        <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>Realizado: valor confirmado</span>
         <span style={{ fontWeight: 700, color: '#2563EB' }}>% = progresso</span>
       </div>
 
@@ -154,17 +154,17 @@ function IndependenciaScreen({ onBack }) {
   const dashOffset = circumference * (1 - progress);
 
   return (
-    <div style={{ height: '100%', overflowY: 'auto', background: '#F7F8FA', fontFamily: 'DM Sans, system-ui' }}>
+    <div style={{ height: '100%', overflowY: 'auto', background: 'var(--bg-app)', fontFamily: 'DM Sans, system-ui' }}>
       <div style={{ padding: 'var(--pad-top) var(--pad-x) var(--pad-bottom)', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={onBack} style={{ width: 36, height: 36, borderRadius: '50%', background: '#fff', border: '1.5px solid #ECEEF4', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(26,31,54,0.08)', flexShrink: 0 }}>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="#1A1F36" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <button onClick={onBack} style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--bg-card)', border: '1.5px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(26,31,54,0.08)', flexShrink: 0 }}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="var(--text-primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>
           <div>
-            <div style={{ fontSize: 19, fontWeight: 700, color: '#1A1F36' }}>Independência Financeira</div>
-            <div style={{ fontSize: 11, color: '#8B90A0', marginTop: 1 }}>Meta: {fmt(target, {short:true})} até {goal.year}</div>
+            <div style={{ fontSize: 19, fontWeight: 700, color: 'var(--text-primary)' }}>Independência Financeira</div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>Meta: {fmt(target, {short:true})} até {goal.year}</div>
           </div>
         </div>
 
@@ -187,7 +187,7 @@ function IndependenciaScreen({ onBack }) {
 
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 11, color: '#94A3CC', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 6 }}>Patrimônio atual</div>
-            <div style={{ fontSize: 26, fontWeight: 800, color: '#fff', letterSpacing: '-0.5px', marginBottom: 14 }}>{fmt(current)}</div>
+            <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-inverse)', letterSpacing: '-0.5px', marginBottom: 14 }}>{fmt(current)}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <div>
                 <div style={{ fontSize: 9, color: '#94A3CC', textTransform: 'uppercase' }}>Faltam</div>
@@ -213,7 +213,7 @@ function IndependenciaScreen({ onBack }) {
               ['Superávit', `${surplus >= 0 ? '+' : ''}${fmt(surplus, {short:true})}`, surplus >= 0 ? '#16A34A' : '#DC2626'],
             ].map(([l, v, c]) => (
               <div key={l}>
-                <div style={{ fontSize: 9, color: '#8B90A0', marginBottom: 2 }}>{l}</div>
+                <div style={{ fontSize: 9, color: 'var(--text-muted)', marginBottom: 2 }}>{l}</div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: c }}>{v}</div>
               </div>
             ))}
@@ -223,14 +223,18 @@ function IndependenciaScreen({ onBack }) {
         {/* Wealth trajectory chart */}
         <Card style={{ padding: '16px 14px 10px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#1A1F36' }}>Trajetória patrimonial</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>Trajetória patrimonial</div>
             <Tag label={`Meta ${fmt(target, {short:true})}`} color="#F59E0B" bg="#FFFBEB"/>
           </div>
-          <AreaChart data={d.wealthForecast} width={326} height={130} goalValue={target} goalLabel={`R$${(target/1000000).toFixed(0)}M`} color="#2563EB"/>
+          <ChartBox height={130}>
+            {(w, h) => (
+              <AreaChart data={d.wealthForecast} width={w} height={h} goalValue={target} goalLabel={`R$${(target/1000000).toFixed(0)}M`} color="#2563EB"/>
+            )}
+          </ChartBox>
         </Card>
 
         {/* Other goals */}
-        <div style={{ fontSize: 12, fontWeight: 600, color: '#8B90A0', letterSpacing: '0.05em', textTransform: 'uppercase', paddingLeft: 2 }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', paddingLeft: 2 }}>
           Outros objetivos
         </div>
         {d.goals.filter(g => !g.name.includes('Independência')).map((g, i) => {
@@ -239,17 +243,17 @@ function IndependenciaScreen({ onBack }) {
             <Card key={i} style={{ padding: '14px 18px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#1A1F36', marginBottom: 1 }}>{g.name}</div>
-                  <div style={{ fontSize: 11, color: '#8B90A0' }}>Previsão: {g.year}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 1 }}>{g.name}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Previsão: {g.year}</div>
                 </div>
                 <div style={{ fontSize: 15, fontWeight: 800, color: '#2563EB' }}>{Math.round(gPct)}%</div>
               </div>
-              <div style={{ height: 6, background: '#F0F1F5', borderRadius: 3, overflow: 'hidden', marginBottom: 6 }}>
+              <div style={{ height: 6, background: 'var(--bg-subtle)', borderRadius: 3, overflow: 'hidden', marginBottom: 6 }}>
                 <div style={{ width: `${gPct}%`, height: '100%', background: 'linear-gradient(90deg,#2563EB,#60A5FA)', borderRadius: 3 }}/>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#8B90A0' }}>
-                <span>Atual: <strong style={{ color: '#1A1F36' }}>{fmt(g.current, {short:true})}</strong></span>
-                <span>Meta: <strong style={{ color: '#1A1F36' }}>{fmt(g.target, {short:true})}</strong></span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)' }}>
+                <span>Atual: <strong style={{ color: 'var(--text-primary)' }}>{fmt(g.current, {short:true})}</strong></span>
+                <span>Meta: <strong style={{ color: 'var(--text-primary)' }}>{fmt(g.target, {short:true})}</strong></span>
               </div>
             </Card>
           );
@@ -328,24 +332,24 @@ function TributarioScreen({ onBack }) {
   const [showFaixas, setShowFaixas] = React.useState(false);
 
   return (
-    <div style={{ height: '100%', overflowY: 'auto', background: '#F7F8FA', fontFamily: 'DM Sans, system-ui' }}>
+    <div style={{ height: '100%', overflowY: 'auto', background: 'var(--bg-app)', fontFamily: 'DM Sans, system-ui' }}>
       <div style={{ padding: 'var(--pad-top) var(--pad-x) var(--pad-bottom)', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={onBack} style={{ width: 36, height: 36, borderRadius: '50%', background: '#fff', border: '1.5px solid #ECEEF4', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(26,31,54,0.08)', flexShrink: 0 }}>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="#1A1F36" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <button onClick={onBack} style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--bg-card)', border: '1.5px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(26,31,54,0.08)', flexShrink: 0 }}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="var(--text-primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>
           <div>
-            <div style={{ fontSize: 19, fontWeight: 700, color: '#1A1F36' }}>Análise Tributária PJ</div>
-            <div style={{ fontSize: 11, color: '#8B90A0', marginTop: 1 }}>Simples Nacional · Anexo III · Tecnologia</div>
+            <div style={{ fontSize: 19, fontWeight: 700, color: 'var(--text-primary)' }}>Análise Tributária PJ</div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>Simples Nacional · Anexo III · Tecnologia</div>
           </div>
         </div>
 
         {/* Faturamento hero */}
         <div style={{ background: 'linear-gradient(145deg, #1A1F36, #253056)', borderRadius: 22, padding: '18px 20px', boxShadow: '0 6px 24px rgba(26,31,54,0.22)' }}>
           <div style={{ fontSize: 11, color: '#94A3CC', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 6 }}>Faturamento projetado 12 meses</div>
-          <div style={{ fontSize: 30, fontWeight: 800, color: '#fff', letterSpacing: '-0.5px', marginBottom: 14 }}>{fmt(annualRev)}</div>
+          <div style={{ fontSize: 30, fontWeight: 800, color: 'var(--text-inverse)', letterSpacing: '-0.5px', marginBottom: 14 }}>{fmt(annualRev)}</div>
           <div style={{ display: 'flex' }}>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 9, color: '#94A3CC', textTransform: 'uppercase' }}>Média mensal</div>
@@ -367,7 +371,7 @@ function TributarioScreen({ onBack }) {
         {/* DAS mensal */}
         <Card style={{ padding: '16px 18px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#1A1F36' }}>DAS mensal estimado</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>DAS mensal estimado</div>
             <div style={{ fontSize: 20, fontWeight: 800, color: '#DC2626' }}>{fmt(monthlyDAS)}</div>
           </div>
           {breakdown.map(b => {
@@ -375,34 +379,34 @@ function TributarioScreen({ onBack }) {
             const barW = Math.round(b.pct / breakdown.reduce((s,x)=>s+x.pct,0) * 100);
             return (
               <div key={b.label} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                <span style={{ width: 44, fontSize: 11, fontWeight: 700, color: '#1A1F36' }}>{b.label}</span>
-                <div style={{ flex: 1, height: 5, background: '#F0F1F5', borderRadius: 3, overflow: 'hidden' }}>
+                <span style={{ width: 44, fontSize: 11, fontWeight: 700, color: 'var(--text-primary)' }}>{b.label}</span>
+                <div style={{ flex: 1, height: 5, background: 'var(--bg-subtle)', borderRadius: 3, overflow: 'hidden' }}>
                   <div style={{ width: `${barW}%`, height: '100%', background: '#EF4444', borderRadius: 3 }}/>
                 </div>
-                <span style={{ width: 60, fontSize: 11, color: '#8B90A0', textAlign: 'right' }}>{fmt(val)}</span>
+                <span style={{ width: 60, fontSize: 11, color: 'var(--text-muted)', textAlign: 'right' }}>{fmt(val)}</span>
               </div>
             );
           })}
           <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid #F0F1F5', display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: 11, color: '#8B90A0' }}>Anual (estimado)</span>
-            <span style={{ fontSize: 13, fontWeight: 700, color: '#1A1F36' }}>{fmt(annualDAS)}</span>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Anual (estimado)</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>{fmt(annualDAS)}</span>
           </div>
           <button onClick={() => setShowFaixas(f => !f)} style={{ marginTop: 8, fontSize: 11, color: '#2563EB', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'DM Sans, system-ui' }}>
             {showFaixas ? 'Ocultar' : 'Ver'} tabela de faixas Simples Nacional
           </button>
           {showFaixas && (
-            <div style={{ marginTop: 8, background: '#F7F8FA', borderRadius: 10, padding: '10px 12px' }}>
+            <div style={{ marginTop: 8, background: 'var(--bg-app)', borderRadius: 10, padding: '10px 12px' }}>
               {faixas.map((f, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: 11 }}>
-                  <span style={{ color: f.label === faixa.label ? '#2563EB' : '#8B90A0', fontWeight: f.label === faixa.label ? 700 : 400 }}>
+                  <span style={{ color: f.label === faixa.label ? '#2563EB' : 'var(--text-muted)', fontWeight: f.label === faixa.label ? 700 : 400 }}>
                     {f.label} – até {fmt(f.max, {short:true})}
                   </span>
-                  <span style={{ color: f.label === faixa.label ? '#2563EB' : '#8B90A0', fontWeight: f.label === faixa.label ? 700 : 400 }}>
+                  <span style={{ color: f.label === faixa.label ? '#2563EB' : 'var(--text-muted)', fontWeight: f.label === faixa.label ? 700 : 400 }}>
                     {(f.aliq*100).toFixed(1)}%
                   </span>
                 </div>
               ))}
-              <div style={{ marginTop: 4, fontSize: 10, color: '#8B90A0' }}>* Alíquota nominal. Alíquota efetiva é menor após dedução.</div>
+              <div style={{ marginTop: 4, fontSize: 10, color: 'var(--text-muted)' }}>* Alíquota nominal. Alíquota efetiva é menor após dedução.</div>
             </div>
           )}
         </Card>
@@ -410,7 +414,7 @@ function TributarioScreen({ onBack }) {
         {/* Recomendação */}
         <Card style={{ padding: '14px 18px', background: '#F0FDF4', border: '1.5px solid #86EFAC' }}>
           <div style={{ fontSize: 13, fontWeight: 800, color: '#16A34A', marginBottom: 6 }}>Recomendação: Pro-labore mínimo</div>
-          <div style={{ fontSize: 12, color: '#1A1F36', lineHeight: 1.6 }}>
+          <div style={{ fontSize: 12, color: 'var(--text-primary)', lineHeight: 1.6 }}>
             No Simples Nacional Anexo III, <strong>dividendos são isentos de IR</strong>. O pro-labore gera INSS + IRPF.
             Configure o pro-labore no mínimo legal (1 salário mínimo) e distribua o restante como dividendo.
           </div>
@@ -420,41 +424,41 @@ function TributarioScreen({ onBack }) {
         </Card>
 
         {/* Pro-labore comparison table */}
-        <div style={{ fontSize: 12, fontWeight: 600, color: '#8B90A0', letterSpacing: '0.05em', textTransform: 'uppercase', paddingLeft: 2 }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', paddingLeft: 2 }}>
           Comparativo de pro-labore
         </div>
         <Card style={{ padding: '8px 6px' }}>
           {/* Header row */}
           <div style={{ display: 'flex', padding: '6px 14px', borderBottom: '1px solid #F0F1F5' }}>
-            <span style={{ flex: 1, fontSize: 10, color: '#8B90A0', fontWeight: 600 }}>Cenário</span>
-            <span style={{ width: 68, fontSize: 10, color: '#8B90A0', textAlign: 'right', fontWeight: 600 }}>INSS+IR</span>
-            <span style={{ width: 72, fontSize: 10, color: '#8B90A0', textAlign: 'right', fontWeight: 600 }}>Líquido</span>
+            <span style={{ flex: 1, fontSize: 10, color: 'var(--text-muted)', fontWeight: 600 }}>Cenário</span>
+            <span style={{ width: 68, fontSize: 10, color: 'var(--text-muted)', textAlign: 'right', fontWeight: 600 }}>INSS+IR</span>
+            <span style={{ width: 72, fontSize: 10, color: 'var(--text-muted)', textAlign: 'right', fontWeight: 600 }}>Líquido</span>
           </div>
           {proLaboreScenarios.map((s, i) => {
             const labels = ['1 SM (R$1.412)', 'Moderado (R$5.000)', 'Alto (R$15.000)'];
             const isRecommended = i === 0;
             return (
               <div key={i}>
-                {i > 0 && <div style={{ height: 1, background: '#F4F5F8', margin: '0 12px' }}/>}
+                {i > 0 && <div style={{ height: 1, background: 'var(--divider)', margin: '0 12px' }}/>}
                 <div style={{ padding: '12px 14px', background: isRecommended ? '#F0FDF4' : 'transparent', borderRadius: isRecommended ? 10 : 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', marginBottom: 6 }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#1A1F36' }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>
                         {labels[i]}
                         {isRecommended && <span style={{ fontSize: 9, fontWeight: 700, color: '#16A34A', background: '#DCFCE7', padding: '1px 6px', borderRadius: 4, marginLeft: 6 }}>IDEAL</span>}
                       </div>
-                      <div style={{ fontSize: 10, color: '#8B90A0', marginTop: 1 }}>
+                      <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 1 }}>
                         Pro-labore {fmt(s.pl)} + Dividendo {fmt(s.div)}
                       </div>
                     </div>
                     <div style={{ width: 68, textAlign: 'right', fontSize: 12, fontWeight: 700, color: '#DC2626' }}>-{fmt(s.taxes)}</div>
-                    <div style={{ width: 72, textAlign: 'right', fontSize: 14, fontWeight: 800, color: isRecommended ? '#16A34A' : '#1A1F36' }}>{fmt(s.netTotal)}</div>
+                    <div style={{ width: 72, textAlign: 'right', fontSize: 14, fontWeight: 800, color: isRecommended ? '#16A34A' : 'var(--text-primary)' }}>{fmt(s.netTotal)}</div>
                   </div>
                   <div style={{ display: 'flex', gap: 10 }}>
                     {[['INSS',fmt(s.inss)],['IR',fmt(s.ir)],['Net pro-lab.',fmt(s.net)],['Dividendo',fmt(s.div)]].map(([l,v]) => (
                       <div key={l}>
-                        <div style={{ fontSize: 8, color: '#8B90A0' }}>{l}</div>
-                        <div style={{ fontSize: 10, fontWeight: 600, color: '#1A1F36' }}>{v}</div>
+                        <div style={{ fontSize: 8, color: 'var(--text-muted)' }}>{l}</div>
+                        <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-primary)' }}>{v}</div>
                       </div>
                     ))}
                   </div>
@@ -466,7 +470,7 @@ function TributarioScreen({ onBack }) {
 
         <div style={{ background: '#FFFBEB', borderRadius: 12, padding: '10px 14px', border: '1px solid #FDE68A' }}>
           <div style={{ fontSize: 11, color: '#D97706', fontWeight: 600, marginBottom: 3 }}>Atenção</div>
-          <div style={{ fontSize: 11, color: '#8B90A0', lineHeight: 1.5 }}>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5 }}>
             Esta análise é uma estimativa baseada em Simples Nacional Anexo III.
             Consulte seu contador para validar os valores exatos e verificar se há alterações legislativas.
             A isenção de IR sobre dividendos pode mudar com reformas tributárias.

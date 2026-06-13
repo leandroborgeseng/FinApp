@@ -20,6 +20,20 @@ router.post('/', async (req, res) => {
   res.status(201).json(tx);
 });
 
+router.post('/bulk', async (req, res) => {
+  const list = req.body?.transactions;
+  if (!Array.isArray(list) || !list.length) {
+    return res.status(400).json({ error: 'Envie transactions como array' });
+  }
+  for (const tx of list) {
+    if (!tx.desc || !tx.value || !tx.type || !tx.entity || !tx.date) {
+      return res.status(400).json({ error: 'Cada item precisa de desc, value, type, entity, date' });
+    }
+  }
+  const created = await store.createTransactionsBulk(req.user.id, list);
+  res.status(201).json(created);
+});
+
 router.put('/:id', async (req, res) => {
   const updated = await store.updateTransaction(req.user.id, req.params.id, req.body);
   if (!updated) return res.status(404).json({ error: 'Não encontrado' });

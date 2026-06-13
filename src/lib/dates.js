@@ -1,5 +1,7 @@
 const MONTH_LABELS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
+export { MONTH_LABELS };
+
 export function budgetLabelToKey(label) {
   const [m, y] = label.split('/');
   const idx = MONTH_LABELS.indexOf(m);
@@ -45,4 +47,45 @@ export function repasseMonthIndex(repasse, date = new Date()) {
   const year = date.getFullYear();
   if ((repasse?.year || year) !== year) return Math.min(date.getMonth(), (repasse?.months?.length || 12) - 1);
   return Math.min(date.getMonth(), (repasse?.months?.length || 12) - 1);
+}
+
+export function repasseTotalDone(months = []) {
+  return months.filter((m) => m.done).reduce((s, m) => s + (m.amount || 0), 0);
+}
+
+export function isCurrentMonthKey(monthKey) {
+  return monthKey === currentMonthKey();
+}
+
+export function parseBudgetMonth(label) {
+  const monthKey = budgetLabelToKey(label);
+  if (!monthKey) return null;
+  const [year, m] = monthKey.split('-').map(Number);
+  const monthIndex0 = m - 1;
+  return {
+    monthKey,
+    year,
+    monthIndex0,
+    daysInMonth: new Date(year, monthIndex0 + 1, 0).getDate(),
+    label,
+  };
+}
+
+export function formatBudgetMonthLong(label) {
+  const p = parseBudgetMonth(label);
+  if (!p) return label;
+  const d = new Date(p.year, p.monthIndex0, 1);
+  const s = d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+export function dayLabelFromMonthKey(monthKey, day) {
+  const [y, m] = monthKey.split('-').map(Number);
+  const date = new Date(y, m - 1, day);
+  return date.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric' });
+}
+
+export function monthKeyFromBudgetIndex(budget, monthIdx) {
+  const label = budget[monthIdx]?.m;
+  return label ? budgetLabelToKey(label) : currentMonthKey();
 }

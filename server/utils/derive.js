@@ -1,10 +1,11 @@
 // Deriva campos calculados a partir do orçamento mensal (mesma lógica de data.js)
+import { buildPlanningChart36 } from './planningChart.js';
 
 export function deriveFromBudget(MB) {
   if (!MB?.length) return {};
 
   return {
-    planning: MB.slice(0, 6).map((r) => ({
+    planning: MB.map((r) => ({
       month: r.m,
       income: r.pjInc + (r.pfInc - r.repasse),
       expense: (r.pjInc - r.pjSaldo) + (r.pfInc - r.repasse - r.pfSaldo),
@@ -15,8 +16,8 @@ export function deriveFromBudget(MB) {
     })),
     cashFlow: MB.slice(1, 13).map((r) => ({
       label: r.m.slice(0, 3),
-      income: r.pjInc + 8300 + 1500,
-      expense: r.pjInc - r.pjSaldo + r.pfInc - r.pfSaldo,
+      income: r.pjInc + (r.pfInc - r.repasse),
+      expense: (r.pjInc - r.pjSaldo) + (r.pfInc - r.pfSaldo),
     })),
     cdbProjection: MB.map((r) => ({
       label: r.m,
@@ -24,14 +25,7 @@ export function deriveFromBudget(MB) {
       aplic: r.aplicPJ + r.aplicPF,
       ret: r.cdbRet,
     })),
-    planningChart36: [
-      ...MB.map((r) => ({ label: r.m, value: r.pjSaldo + r.pfSaldo })),
-      { label: 'Jan/29', value: 72760 },
-      { label: 'Fev/29', value: 72760 },
-      { label: 'Mar/29', value: 72760 },
-      { label: 'Abr/29', value: 72760 },
-      { label: 'Mai/29', value: 72760 },
-    ],
+    planningChart36: buildPlanningChart36(MB),
     netWorthHistory: [
       { year: 2022, value: 280000 },
       { year: 2023, value: 520000 },
@@ -64,6 +58,7 @@ export function buildFinancePayload(snap) {
     recurringOverrides: snap.recurringOverrides || {},
     wealthForecast: snap.wealthForecast || [],
     preferences: snap.preferences || { dark: false },
+    accounts: snap.accounts || [],
     startBalances: snap.startBalances || { PF: snap.pfAvailable, PJ: snap.pjAvailable, Todos: (snap.pfAvailable || 0) + (snap.pjAvailable || 0) },
     ...derived,
   };

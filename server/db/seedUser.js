@@ -45,6 +45,7 @@ export function buildSnapshotData() {
     nextMonthForecast: AppData.nextMonthForecast,
     wealthForecast: AppData.wealthForecast,
     preferences: { dark: false },
+    accounts: AppData.accounts,
   };
 }
 

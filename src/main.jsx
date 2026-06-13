@@ -5,6 +5,11 @@ import { AuthProvider } from './context/AuthContext.jsx';
 import { startOfflineSync } from './api/client.js';
 import App from './App';
 import './styles/global.css';
+import { applyThemeClass } from './lib/theme.js';
+
+if (localStorage.getItem('fin_dark') === '1') {
+  applyThemeClass(true);
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {

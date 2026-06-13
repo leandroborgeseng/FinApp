@@ -75,30 +75,30 @@ function RecorrenciasSheet({ onBack }) {
   };
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#F7F8FA', fontFamily: 'DM Sans, system-ui' }}>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg-app)', fontFamily: 'DM Sans, system-ui' }}>
 
       {/* Fixed top bar */}
-      <div style={{ flexShrink: 0, padding: 'var(--pad-top) 16px 12px', background: '#fff', borderBottom: '1.5px solid #ECEEF4', boxShadow: '0 2px 8px rgba(26,31,54,0.06)' }}>
+      <div style={{ flexShrink: 0, padding: 'var(--pad-top) 16px 12px', background: 'var(--bg-card)', borderBottom: '1.5px solid #ECEEF4', boxShadow: '0 2px 8px rgba(26,31,54,0.06)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-          <button onClick={onBack} style={{ width: 34, height: 34, borderRadius: '50%', background: '#F7F8FA', border: '1.5px solid #ECEEF4', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="#1A1F36" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <button onClick={onBack} style={{ width: 34, height: 34, borderRadius: '50%', background: 'var(--bg-app)', border: '1.5px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="var(--text-primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 17, fontWeight: 700, color: '#1A1F36' }}>Planilha de Recorrências</div>
-            <div style={{ fontSize: 10, color: '#8B90A0', marginTop: 1 }}>{visRows.length} lançamentos · {MONTHS.length} meses · role para o lado</div>
+            <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-primary)' }}>Planilha de Recorrências</div>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 1 }}>{visRows.length} lançamentos · {MONTHS.length} meses · role para o lado</div>
           </div>
           <button onClick={() => setNewRow({ desc: '', type: 'expense', entity: 'PF', cat: 'Outros', value: '' })}
-            style={{ width: 34, height: 34, borderRadius: '50%', background: '#1A1F36', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#fff', fontSize: 20, fontWeight: 300 }}>+</button>
+            style={{ width: 34, height: 34, borderRadius: '50%', background: 'var(--text-primary)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--text-inverse)', fontSize: 20, fontWeight: 300 }}>+</button>
         </div>
 
         {/* Filters */}
         <div style={{ display: 'flex', gap: 6 }}>
           {['Todos','PF','PJ'].map(f => (
-            <button key={f} onClick={() => setFilterEnt(f)} style={{ padding: '5px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 600, fontFamily: 'DM Sans, system-ui', background: filterEnt === f ? '#1A1F36' : '#F0F1F5', color: filterEnt === f ? '#fff' : '#8B90A0' }}>{f}</button>
+            <button key={f} onClick={() => setFilterEnt(f)} style={{ padding: '5px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 600, fontFamily: 'DM Sans, system-ui', background: filterEnt === f ? '#1A1F36' : 'var(--bg-subtle)', color: filterEnt === f ? 'var(--bg-card)' : 'var(--text-muted)' }}>{f}</button>
           ))}
-          <div style={{ width: 1, background: '#ECEEF4', margin: '0 2px' }}/>
+          <div style={{ width: 1, background: 'var(--bg-toggle)', margin: '0 2px' }}/>
           {[['Todos','Todos'],['income','Receitas'],['expense','Despesas']].map(([k, l]) => (
-            <button key={k} onClick={() => setFilterType(k)} style={{ padding: '5px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 600, fontFamily: 'DM Sans, system-ui', background: filterType === k ? (k === 'income' ? '#16A34A' : k === 'expense' ? '#DC2626' : '#1A1F36') : '#F0F1F5', color: filterType === k ? '#fff' : '#8B90A0' }}>{l}</button>
+            <button key={k} onClick={() => setFilterType(k)} style={{ padding: '5px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 600, fontFamily: 'DM Sans, system-ui', background: filterType === k ? (k === 'income' ? '#16A34A' : k === 'expense' ? '#DC2626' : 'var(--text-primary)') : 'var(--bg-subtle)', color: filterType === k ? 'var(--bg-card)' : 'var(--text-muted)' }}>{l}</button>
           ))}
         </div>
       </div>
@@ -107,20 +107,20 @@ function RecorrenciasSheet({ onBack }) {
       {newRow && (
         <div style={{ flexShrink: 0, padding: '10px 16px', background: '#F0FDF4', borderBottom: '1.5px solid #86EFAC', display: 'flex', gap: 8, alignItems: 'center' }}>
           <input placeholder="Descrição" value={newRow.desc} onChange={e => setNewRow(p => ({ ...p, desc: e.target.value }))}
-            style={{ flex: 2, padding: '7px 10px', borderRadius: 8, border: '1.5px solid #86EFAC', fontSize: 12, fontFamily: 'DM Sans, system-ui', outline: 'none', background: '#fff' }}/>
+            style={{ flex: 2, padding: '7px 10px', borderRadius: 8, border: '1.5px solid #86EFAC', fontSize: 12, fontFamily: 'DM Sans, system-ui', outline: 'none', background: 'var(--bg-card)' }}/>
           <input placeholder="Valor" value={newRow.value} onChange={e => setNewRow(p => ({ ...p, value: e.target.value }))} inputMode="numeric"
-            style={{ flex: 1, padding: '7px 10px', borderRadius: 8, border: '1.5px solid #86EFAC', fontSize: 12, fontFamily: 'DM Sans, system-ui', outline: 'none', background: '#fff' }}/>
+            style={{ flex: 1, padding: '7px 10px', borderRadius: 8, border: '1.5px solid #86EFAC', fontSize: 12, fontFamily: 'DM Sans, system-ui', outline: 'none', background: 'var(--bg-card)' }}/>
           <select value={newRow.type} onChange={e => setNewRow(p => ({ ...p, type: e.target.value }))}
-            style={{ padding: '7px 8px', borderRadius: 8, border: '1.5px solid #86EFAC', fontSize: 11, fontFamily: 'DM Sans, system-ui', outline: 'none', background: '#fff', cursor: 'pointer' }}>
+            style={{ padding: '7px 8px', borderRadius: 8, border: '1.5px solid #86EFAC', fontSize: 11, fontFamily: 'DM Sans, system-ui', outline: 'none', background: 'var(--bg-card)', cursor: 'pointer' }}>
             <option value="income">Receita</option>
             <option value="expense">Despesa</option>
           </select>
           <select value={newRow.entity} onChange={e => setNewRow(p => ({ ...p, entity: e.target.value }))}
-            style={{ padding: '7px 8px', borderRadius: 8, border: '1.5px solid #86EFAC', fontSize: 11, fontFamily: 'DM Sans, system-ui', outline: 'none', background: '#fff', cursor: 'pointer' }}>
+            style={{ padding: '7px 8px', borderRadius: 8, border: '1.5px solid #86EFAC', fontSize: 11, fontFamily: 'DM Sans, system-ui', outline: 'none', background: 'var(--bg-card)', cursor: 'pointer' }}>
             <option value="PF">PF</option>
             <option value="PJ">PJ</option>
           </select>
-          <button onClick={addRow} style={{ padding: '7px 14px', borderRadius: 8, border: 'none', background: '#16A34A', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, system-ui' }}>OK</button>
+          <button onClick={addRow} style={{ padding: '7px 14px', borderRadius: 8, border: 'none', background: '#16A34A', color: 'var(--text-inverse)', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, system-ui' }}>OK</button>
           <button onClick={() => setNewRow(null)} style={{ padding: '7px 10px', borderRadius: 8, border: 'none', background: '#FEF2F2', color: '#DC2626', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, system-ui' }}>✕</button>
         </div>
       )}
@@ -128,15 +128,15 @@ function RecorrenciasSheet({ onBack }) {
       {/* Scrollable table */}
       <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         {/* Sticky column headers */}
-        <div ref={colRef} style={{ display: 'flex', overflowX: 'auto', overflowY: 'hidden', flexShrink: 0, background: '#fff', borderBottom: '2px solid #ECEEF4' }}
+        <div ref={colRef} style={{ display: 'flex', overflowX: 'auto', overflowY: 'hidden', flexShrink: 0, background: 'var(--bg-card)', borderBottom: '2px solid #ECEEF4' }}
           id="sheet-scroll-header">
           {/* Corner */}
-          <div style={{ width: FIRST_W, minWidth: FIRST_W, flexShrink: 0, padding: '8px 12px', background: '#fff', position: 'sticky', left: 0, zIndex: 3, borderRight: '2px solid #ECEEF4' }}>
-            <div style={{ fontSize: 10, color: '#8B90A0', fontWeight: 600, textTransform: 'uppercase' }}>Lançamento</div>
+          <div style={{ width: FIRST_W, minWidth: FIRST_W, flexShrink: 0, padding: '8px 12px', background: 'var(--bg-card)', position: 'sticky', left: 0, zIndex: 3, borderRight: '2px solid #ECEEF4' }}>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Lançamento</div>
           </div>
           {MONTHS.map((m, mi) => (
-            <div key={mi} style={{ width: COL_W, minWidth: COL_W, flexShrink: 0, padding: '8px 4px', textAlign: 'center', background: mi === 0 ? '#EFF6FF' : '#fff', borderRight: '1px solid #F4F5F8' }}>
-              <div style={{ fontSize: 11, fontWeight: mi === 0 ? 800 : 600, color: mi === 0 ? '#2563EB' : '#8B90A0' }}>{m}</div>
+            <div key={mi} style={{ width: COL_W, minWidth: COL_W, flexShrink: 0, padding: '8px 4px', textAlign: 'center', background: mi === 0 ? '#EFF6FF' : 'var(--bg-card)', borderRight: '1px solid #F4F5F8' }}>
+              <div style={{ fontSize: 11, fontWeight: mi === 0 ? 800 : 600, color: mi === 0 ? '#2563EB' : 'var(--text-muted)' }}>{m}</div>
             </div>
           ))}
         </div>
@@ -150,12 +150,12 @@ function RecorrenciasSheet({ onBack }) {
             {visRows.map((row, vi) => {
               const r     = row.r;
               const isInc = row.type === 'income';
-              const rowBg = vi % 2 === 0 ? '#fff' : '#FAFBFC';
+              const rowBg = vi % 2 === 0 ? 'var(--bg-card)' : '#FAFBFC';
               return (
-                <div key={r} style={{ display: 'flex', background: rowBg, borderBottom: '1px solid #F4F5F8' }}>
+                <div key={r} style={{ display: 'flex', background: rowBg, borderBottom: '1px solid var(--divider)' }}>
                   {/* Item name — sticky */}
                   <div style={{ width: FIRST_W, minWidth: FIRST_W, flexShrink: 0, padding: '8px 12px', position: 'sticky', left: 0, background: rowBg, zIndex: 2, borderRight: '2px solid #ECEEF4', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: '#1A1F36', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.desc}</div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.desc}</div>
                     <div style={{ display: 'flex', gap: 4, marginTop: 2 }}>
                       <span style={{ fontSize: 8, padding: '1px 5px', borderRadius: 4, background: row.entity === 'PF' ? '#EFF6FF' : '#F5F3FF', color: row.entity === 'PF' ? '#2563EB' : '#7C3AED', fontWeight: 700 }}>{row.entity}</span>
                       <span style={{ fontSize: 8, padding: '1px 5px', borderRadius: 4, background: isInc ? '#F0FDF4' : '#FEF2F2', color: isInc ? '#16A34A' : '#DC2626', fontWeight: 700 }}>{isInc ? 'REC' : 'DES'}</span>
@@ -176,7 +176,7 @@ function RecorrenciasSheet({ onBack }) {
                             onBlur={commitEdit}
                             onKeyDown={e => { if (e.key === 'Enter') commitEdit(); if (e.key === 'Escape') setEditing(null); }}
                             inputMode="numeric"
-                            style={{ width: '100%', padding: '4px 4px', borderRadius: 6, border: `1.5px solid ${isInc ? '#86EFAC' : '#FECACA'}`, fontSize: 11, fontWeight: 700, color: isInc ? '#16A34A' : '#DC2626', background: '#fff', outline: 'none', textAlign: 'center', fontFamily: 'DM Sans, system-ui' }}/>
+                            style={{ width: '100%', padding: '4px 4px', borderRadius: 6, border: `1.5px solid ${isInc ? '#86EFAC' : '#FECACA'}`, fontSize: 11, fontWeight: 700, color: isInc ? '#16A34A' : '#DC2626', background: 'var(--bg-card)', outline: 'none', textAlign: 'center', fontFamily: 'DM Sans, system-ui' }}/>
                         ) : (
                           <div style={{ fontSize: 11, fontWeight: isOv ? 800 : 500, color: isInc ? '#16A34A' : '#DC2626', textAlign: 'center', textDecoration: isOv ? 'underline dotted' : 'none' }}>
                             {v >= 1000 ? `${(v/1000).toFixed(0)}k` : v}
@@ -219,7 +219,7 @@ function RecorrenciasSheet({ onBack }) {
       </div>
 
       {/* Bottom hint */}
-      <div style={{ flexShrink: 0, padding: '8px 16px', background: '#fff', borderTop: '1px solid #ECEEF4', fontSize: 10, color: '#C4C7D4', textAlign: 'center' }}>
+      <div style={{ flexShrink: 0, padding: '8px 16px', background: 'var(--bg-card)', borderTop: '1px solid var(--border)', fontSize: 10, color: 'var(--text-faint)', textAlign: 'center' }}>
         Toque em qualquer célula para editar · pontos laranja = valor customizado · role ➝ para ver todos os meses
       </div>
     </div>

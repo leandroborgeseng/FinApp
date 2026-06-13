@@ -54,8 +54,8 @@ export function InstallPrompt() {
         </svg>
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: '#1A1F36' }}>Instalar FinApp</div>
-        <div style={{ fontSize: 11, color: '#8B90A0', marginTop: 2 }}>Acesso rápido na tela inicial, como app nativo</div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>Instalar FinApp</div>
+        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>Acesso rápido na tela inicial, como app nativo</div>
       </div>
       <button onClick={install} style={{
         padding: '8px 14px', borderRadius: 10, border: 'none',
@@ -63,7 +63,7 @@ export function InstallPrompt() {
         cursor: 'pointer', flexShrink: 0, fontFamily: 'inherit',
       }}>Instalar</button>
       <button onClick={dismiss} style={{
-        background: 'none', border: 'none', color: '#C4C7D4',
+        background: 'none', border: 'none', color: 'var(--text-faint)',
         fontSize: 18, cursor: 'pointer', padding: 4, lineHeight: 1,
       }} aria-label="Fechar">×</button>
     </div>

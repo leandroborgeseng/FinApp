@@ -1,4 +1,5 @@
 // data.jsx — dados reais do orçamento 2026-2028
+import { buildPlanningChart36 } from './lib/planningChart.js';
 
 const MB = [ // monthlyBudget: 31 meses Jun/26→Dez/28 (fonte: planilha Orçamento2026-2028)
   { m:'Jun/26', pjInc:61901,  pjSaldo:35147, aplicPJ:1147,  pfInc:41350, pfSaldo:11301, aplicPF:11301, repasse:34000, cdb:12573,    cdbRet:126    },
@@ -55,8 +56,8 @@ const AppData = {
   // ── Fluxo de caixa 12 meses (Jul/26 → Jun/27) ──────
   cashFlow: MB.slice(1, 13).map(r => ({
     label: r.m.slice(0, 3),
-    income:  r.pjInc + 8300 + 1500,          // PJ + FACEF + Aluguel
-    expense: r.pjInc - r.pjSaldo + r.pfInc - r.pfSaldo,
+    income:  r.pjInc + (r.pfInc - r.repasse),
+    expense: (r.pjInc - r.pjSaldo) + (r.pfInc - r.pfSaldo),
   })),
 
   // ── Projeção CDB (fonte planilha — 1%/mês) ─────────
@@ -105,6 +106,13 @@ const AppData = {
   ],
   startBalances: { PF: 85000, PJ: 320000, Todos: 405000 },
 
+  accounts: [
+    { id: 'pf-cc',    type: 'checking', entity: 'PF', name: 'Conta Corrente PF', bank: 'Nubank',     balance: 85000  },
+    { id: 'pj-cc',    type: 'checking', entity: 'PJ', name: 'Conta PJ',          bank: 'Inter PJ',   balance: 320000 },
+    { id: 'master',   type: 'card',     entity: 'PF', name: 'Cartão Master',     brand: 'Mastercard', limit: 15000, used: 3390, closingDay: 12, dueDay: 20 },
+    { id: 'nubank-pj',type: 'card',     entity: 'PJ', name: 'Cartão PJ',         brand: 'Visa',       limit: 25000, used: 4800,  closingDay: 5,  dueDay: 15 },
+  ],
+
   // ── Transações recentes ─────────────────────────────
   transactions: [
     { id: 1, type: 'income',   desc: 'UNIMED HSJ',       value: 26086, entity: 'PJ', date: '2026-06-15', done: true,  cat: 'Receita PJ'    },
@@ -118,7 +126,7 @@ const AppData = {
   ],
 
   // ── Planejamento mensal (próx. 6 meses reais) ──────
-  planning: MB.slice(0, 6).map(r => ({
+  planning: MB.map(r => ({
     month: r.m,
     income:  r.pjInc + (r.pfInc - r.repasse), // PJ + PF própria (ex-repasse)
     expense: (r.pjInc - r.pjSaldo) + (r.pfInc - r.repasse - r.pfSaldo),
@@ -166,12 +174,7 @@ const AppData = {
   ],
 
   // ── Projeção 36 meses (sobra mensal) ────────────────
-  planningChart36: [
-    ...MB.map(r => ({ label: r.m, value: r.pjSaldo + r.pfSaldo })),
-    { label: 'Jan/29', value: 72760 }, { label: 'Fev/29', value: 72760 },
-    { label: 'Mar/29', value: 72760 }, { label: 'Abr/29', value: 72760 },
-    { label: 'Mai/29', value: 72760 },
-  ],
+  planningChart36: buildPlanningChart36(MB),
 
   // ── Lista completa de financiamentos ───────────────
   financingList: [

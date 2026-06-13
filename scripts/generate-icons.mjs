@@ -11,7 +11,12 @@ async function main() {
   try {
     sharp = (await import('sharp')).default;
   } catch {
-    console.warn('[icons] sharp não instalado — usando SVG apenas');
+    const missing = [192, 512].filter((size) => !fs.existsSync(path.join(iconsDir, `icon-${size}.png`)));
+    if (missing.length) {
+      console.warn('[icons] sharp não instalado e PNGs ausentes:', missing.join(', '));
+      process.exit(1);
+    }
+    console.log('[icons] PNGs já presentes — pulando geração');
     return;
   }
   const svg = fs.readFileSync(svgPath);

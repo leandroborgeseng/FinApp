@@ -12,6 +12,10 @@ export function createTransaction(tx) {
   return apiFetch('/transactions', { method: 'POST', body: JSON.stringify(tx) });
 }
 
+export function createTransactionsBulk(transactions) {
+  return apiFetch('/transactions/bulk', { method: 'POST', body: JSON.stringify({ transactions }) });
+}
+
 export function updateTransaction(id, patch) {
   return apiFetch(`/transactions/${id}`, { method: 'PUT', body: JSON.stringify(patch) });
 }

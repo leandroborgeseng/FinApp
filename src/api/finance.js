@@ -44,8 +44,24 @@ export function fetchFinancings() {
   return apiFetch('/financings');
 }
 
+export function updateBudgetMonth(month, patch) {
+  return apiFetch(`/budget/${encodeURIComponent(month)}`, { method: 'PUT', body: JSON.stringify(patch) });
+}
+
+export function createFinancing(fin) {
+  return apiFetch('/financings', { method: 'POST', body: JSON.stringify(fin) });
+}
+
 export function updateFinancing(id, patch) {
   return apiFetch(`/financings/${id}`, { method: 'PUT', body: JSON.stringify(patch) });
+}
+
+export function fetchAccounts() {
+  return apiFetch('/accounts');
+}
+
+export function updateAccount(id, patch) {
+  return apiFetch(`/accounts/${id}`, { method: 'PUT', body: JSON.stringify(patch) });
 }
 
 export function saveMonthlyEvents(events) {

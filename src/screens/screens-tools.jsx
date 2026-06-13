@@ -1,8 +1,9 @@
 import React from 'react';
 import { fmt } from '../data.js';
 import { useFinance } from '../hooks/useFinance.jsx';
-import { AreaChart, DonutChart } from '../components/charts.jsx';
+import { AreaChart, DonutChart, ChartBox } from '../components/charts.jsx';
 import { Card } from './screens-a.jsx';
+import { downloadMonthlyReportCsv } from '../lib/reportExport.js';
 // screens-tools.jsx — Simulador E-Se · Relatório · PGBL · Score
 
 /* ─────────────────────────────────────────────────────
@@ -46,16 +47,16 @@ function SimuladorESeScreen({ onBack }) {
   const curveExtra = extra > 0 ? buildCurve(sobraAtual + extra) : null;
 
   return (
-    <div style={{ height: '100%', overflowY: 'auto', background: '#F7F8FA', fontFamily: 'DM Sans, system-ui' }}>
+    <div style={{ height: '100%', overflowY: 'auto', background: 'var(--bg-app)', fontFamily: 'DM Sans, system-ui' }}>
       <div style={{ padding: 'var(--pad-top) var(--pad-x) var(--pad-bottom)', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={onBack} style={{ width: 36, height: 36, borderRadius: '50%', background: '#fff', border: '1.5px solid #ECEEF4', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(26,31,54,0.08)', flexShrink: 0 }}>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="#1A1F36" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <button onClick={onBack} style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--bg-card)', border: '1.5px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(26,31,54,0.08)', flexShrink: 0 }}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="var(--text-primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>
           <div>
-            <div style={{ fontSize: 19, fontWeight: 700, color: '#1A1F36' }}>Simulador "E se?"</div>
-            <div style={{ fontSize: 11, color: '#8B90A0', marginTop: 1 }}>Impacto de aportes extras na independência</div>
+            <div style={{ fontSize: 19, fontWeight: 700, color: 'var(--text-primary)' }}>Simulador "E se?"</div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>Impacto de aportes extras na independência</div>
           </div>
         </div>
 
@@ -83,18 +84,18 @@ function SimuladorESeScreen({ onBack }) {
         {/* Extra aporte slider */}
         <Card style={{ padding: '16px 18px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#1A1F36' }}>Aporte extra mensal</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>Aporte extra mensal</div>
             <div style={{ fontSize: 22, fontWeight: 800, color: '#2563EB' }}>{fmt(extra, {short:true})}</div>
           </div>
           <input type="range" min="0" max="30000" step="500" value={extra}
             onChange={e => setExtra(Number(e.target.value))}
             style={{ width: '100%', accentColor: '#2563EB', marginBottom: 8 }}/>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#C4C7D4', marginBottom: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--text-faint)', marginBottom: 12 }}>
             <span>R$ 0</span><span>R$ 5k</span><span>R$ 10k</span><span>R$ 20k</span><span>R$ 30k</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-            <span style={{ fontSize: 12, color: '#8B90A0' }}>Novo total mensal</span>
-            <span style={{ fontSize: 13, fontWeight: 700, color: '#1A1F36' }}>{fmt(sobraAtual + extra, {short:true})}/mês</span>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Novo total mensal</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>{fmt(sobraAtual + extra, {short:true})}/mês</span>
           </div>
         </Card>
 
@@ -108,11 +109,11 @@ function SimuladorESeScreen({ onBack }) {
               {[
                 { label: 'Nova previsão',     value: fmtData(dataNova),                   big: true,  color: '#16A34A' },
                 { label: 'Antecipação',       value: `${mesesSaved} meses`,               big: true,  color: '#2563EB' },
-                { label: 'Custo extra/ano',   value: fmt(extra * 12, {short:true}),        big: false, color: '#1A1F36' },
-                { label: 'vs. meta original', value: fmtData(dataBase),                   big: false, color: '#8B90A0' },
+                { label: 'Custo extra/ano',   value: fmt(extra * 12, {short:true}),        big: false, color: 'var(--text-primary)' },
+                { label: 'vs. meta original', value: fmtData(dataBase),                   big: false, color: 'var(--text-muted)' },
               ].map(s => (
-                <div key={s.label} style={{ background: '#fff', borderRadius: 12, padding: '10px 12px' }}>
-                  <div style={{ fontSize: 10, color: '#8B90A0', marginBottom: 3 }}>{s.label}</div>
+                <div key={s.label} style={{ background: 'var(--bg-card)', borderRadius: 12, padding: '10px 12px' }}>
+                  <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3 }}>{s.label}</div>
                   <div style={{ fontSize: s.big ? 16 : 13, fontWeight: 800, color: s.color }}>{s.value}</div>
                 </div>
               ))}
@@ -126,21 +127,27 @@ function SimuladorESeScreen({ onBack }) {
         {/* Chart — trajectory */}
         <Card style={{ padding: '16px 14px 10px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#1A1F36' }}>Trajetória patrimonial</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>Trajetória patrimonial</div>
             <div style={{ display: 'flex', gap: 8, fontSize: 10 }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 3, color: '#2563EB' }}><span style={{ width: 10, height: 2, background: '#2563EB', display: 'inline-block', borderRadius: 1 }}/>Atual</span>
               {extra > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: 3, color: '#16A34A' }}><span style={{ width: 10, height: 2, background: '#16A34A', display: 'inline-block', borderRadius: 1 }}/>+{fmt(extra,{short:true})}</span>}
             </div>
           </div>
-          <div style={{ fontSize: 10, color: '#8B90A0', marginBottom: 8 }}>
+          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 8 }}>
             Horizonte:
             <select value={horizonte} onChange={e => setHorizonte(Number(e.target.value))}
-              style={{ marginLeft: 6, padding: '2px 6px', borderRadius: 6, border: '1px solid #ECEEF4', fontSize: 10, fontFamily: 'DM Sans, system-ui', color: '#1A1F36', background: '#fff', cursor: 'pointer', outline: 'none' }}>
+              style={{ marginLeft: 6, padding: '2px 6px', borderRadius: 6, border: '1px solid var(--border)', fontSize: 10, fontFamily: 'DM Sans, system-ui', color: 'var(--text-primary)', background: 'var(--bg-card)', cursor: 'pointer', outline: 'none' }}>
               {[24,36,48,60,84,120].map(m => <option key={m} value={m}>{m >= 12 ? m/12 + ' anos' : m + 'm'}</option>)}
             </select>
           </div>
-          <AreaChart data={curveBase} width={326} height={120} color="#2563EB" goalValue={meta} goalLabel="R$3M"/>
-          {curveExtra && <AreaChart data={curveExtra} width={326} height={120} color="#16A34A" goalValue={meta} goalLabel=""/>}
+          <ChartBox height={120}>
+            {(w, h) => <AreaChart data={curveBase} width={w} height={h} color="#2563EB" goalValue={meta} goalLabel="R$3M"/>}
+          </ChartBox>
+          {curveExtra && (
+            <ChartBox height={120}>
+              {(w, h) => <AreaChart data={curveExtra} width={w} height={h} color="#16A34A" goalValue={meta} goalLabel=""/>}
+            </ChartBox>
+          )}
         </Card>
 
       </div>
@@ -169,13 +176,30 @@ function RelatorioMensalScreen({ onBack, transactions }) {
   const actInc    = confirmed.filter(t => t.type === 'income').reduce((s,t) => s+t.value, 0);
   const actExp    = confirmed.filter(t => t.type === 'expense').reduce((s,t) => s+t.value, 0);
 
-  const planInc   = r.pjInc + r.pfInc;
-  const planExp   = planInc - (r.pjSaldo + r.pfSaldo);
+  const planInc   = r.pjInc + (r.pfInc - r.repasse);
+  const planExp   = (r.pjInc - r.pjSaldo) + (r.pfInc - r.repasse - r.pfSaldo);
   const planSaldo = r.pjSaldo + r.pfSaldo;
 
   const cats = {};
   d.monthlyEvents.filter(e => e.type === 'expense').forEach(e => { cats[e.cat] = (cats[e.cat]||0) + e.value; });
-  const catList = Object.entries(cats).sort((a,b) => b[1]-a[1]);
+  const catList = Object.entries(cats).sort((a,b) => b[1]-a[1]).map(([cat, val]) => {
+    const pct = planExp > 0 ? Math.round(val / planExp * 100) : 0;
+    return [cat, val, pct];
+  });
+
+  const handleExportCsv = () => {
+    downloadMonthlyReportCsv({
+      monthRaw,
+      planInc,
+      planExp,
+      planSaldo,
+      actInc,
+      actExp,
+      kpis,
+      catList,
+      confirmed,
+    });
+  };
 
   const kpis = [
     { label: 'Receita Planejada',   value: planInc,          color: '#16A34A', bg: '#F0FDF4' },
@@ -189,21 +213,32 @@ function RelatorioMensalScreen({ onBack, transactions }) {
   ];
 
   return (
-    <div style={{ height: '100%', overflowY: 'auto', background: '#F7F8FA', fontFamily: 'DM Sans, system-ui' }}>
+    <div style={{ height: '100%', overflowY: 'auto', background: 'var(--bg-app)', fontFamily: 'DM Sans, system-ui' }}>
       <div style={{ padding: 'var(--pad-top) var(--pad-x) var(--pad-bottom)', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={onBack} style={{ width: 36, height: 36, borderRadius: '50%', background: '#fff', border: '1.5px solid #ECEEF4', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(26,31,54,0.08)', flexShrink: 0 }}>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="#1A1F36" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <button onClick={onBack} style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--bg-card)', border: '1.5px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(26,31,54,0.08)', flexShrink: 0 }}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="var(--text-primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 19, fontWeight: 700, color: '#1A1F36' }}>Relatório Mensal</div>
-            <div style={{ fontSize: 11, color: '#8B90A0', marginTop: 1 }}>Resumo completo do mês</div>
+            <div style={{ fontSize: 19, fontWeight: 700, color: 'var(--text-primary)' }}>Relatório Mensal</div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>Resumo completo do mês</div>
           </div>
           <select value={monthIdx} onChange={e => setMonthIdx(Number(e.target.value))}
-            style={{ padding: '8px 10px', borderRadius: 10, border: '1.5px solid #ECEEF4', fontSize: 12, fontWeight: 700, color: '#1A1F36', background: '#fff', fontFamily: 'DM Sans, system-ui', cursor: 'pointer', outline: 'none' }}>
+            style={{ padding: '8px 10px', borderRadius: 10, border: '1.5px solid var(--border)', fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', background: 'var(--bg-card)', fontFamily: 'DM Sans, system-ui', cursor: 'pointer', outline: 'none' }}>
             {MB.map((m, i) => <option key={i} value={i}>{m.m}</option>)}
           </select>
+          <button
+            type="button"
+            onClick={handleExportCsv}
+            style={{
+              padding: '8px 12px', borderRadius: 10, border: 'none', background: '#2563EB',
+              color: 'var(--text-inverse)', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+              fontFamily: 'DM Sans, system-ui', flexShrink: 0,
+            }}
+          >
+            CSV
+          </button>
         </div>
 
         {/* Hero */}
@@ -226,27 +261,26 @@ function RelatorioMensalScreen({ onBack, transactions }) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           {kpis.map((k, i) => (
             <div key={i} style={{ background: k.bg, borderRadius: 12, padding: '10px 12px' }}>
-              <div style={{ fontSize: 9, color: '#8B90A0', marginBottom: 2, lineHeight: 1.3 }}>{k.label}</div>
+              <div style={{ fontSize: 9, color: 'var(--text-muted)', marginBottom: 2, lineHeight: 1.3 }}>{k.label}</div>
               <div style={{ fontSize: 14, fontWeight: 800, color: k.color }}>{fmt(k.value, {short:true})}</div>
             </div>
           ))}
         </div>
 
         {/* Category breakdown */}
-        <div style={{ fontSize: 12, fontWeight: 600, color: '#8B90A0', letterSpacing: '0.05em', textTransform: 'uppercase', paddingLeft: 2 }}>Despesas por categoria</div>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', paddingLeft: 2 }}>Despesas por categoria</div>
         <Card style={{ padding: '4px 6px' }}>
-          {catList.map(([cat, val], i) => {
-            const pct = Math.round(val / planExp * 100);
+          {catList.map(([cat, val, pct], i) => {
             return (
               <div key={cat}>
-                {i > 0 && <div style={{ height: 1, background: '#F4F5F8', margin: '0 14px' }}/>}
+                {i > 0 && <div style={{ height: 1, background: 'var(--divider)', margin: '0 14px' }}/>}
                 <div style={{ padding: '9px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#1A1F36' }}>{cat}</div>
-                  <div style={{ width: 60, height: 4, background: '#F0F1F5', borderRadius: 2, overflow: 'hidden' }}>
+                  <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>{cat}</div>
+                  <div style={{ width: 60, height: 4, background: 'var(--bg-subtle)', borderRadius: 2, overflow: 'hidden' }}>
                     <div style={{ width: `${Math.min(100,pct)}%`, height: '100%', background: '#EF4444', borderRadius: 2 }}/>
                   </div>
                   <div style={{ fontSize: 12, fontWeight: 700, color: '#DC2626', minWidth: 64, textAlign: 'right' }}>{fmt(val, {short:true})}</div>
-                  <div style={{ fontSize: 10, color: '#8B90A0', minWidth: 28, textAlign: 'right' }}>{pct}%</div>
+                  <div style={{ fontSize: 10, color: 'var(--text-muted)', minWidth: 28, textAlign: 'right' }}>{pct}%</div>
                 </div>
               </div>
             );
@@ -256,16 +290,16 @@ function RelatorioMensalScreen({ onBack, transactions }) {
         {/* Confirmed this month */}
         {confirmed.length > 0 && (
           <>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#8B90A0', letterSpacing: '0.05em', textTransform: 'uppercase', paddingLeft: 2 }}>Confirmados no mês</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', paddingLeft: 2 }}>Confirmados no mês</div>
             <Card style={{ padding: '4px 6px' }}>
               {confirmed.slice(0,8).map((tx, i) => {
                 const isInc = tx.type === 'income';
                 return (
                   <div key={tx.id || i}>
-                    {i > 0 && <div style={{ height: 1, background: '#F4F5F8', margin: '0 14px' }}/>}
+                    {i > 0 && <div style={{ height: 1, background: 'var(--divider)', margin: '0 14px' }}/>}
                     <div style={{ padding: '9px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
                       <div style={{ width: 28, height: 28, borderRadius: 8, background: isInc ? '#F0FDF4' : '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: isInc ? '#16A34A' : '#DC2626', fontWeight: 700, flexShrink: 0 }}>{isInc ? '↑' : '↓'}</div>
-                      <div style={{ flex: 1, fontSize: 12, color: '#1A1F36', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.desc}</div>
+                      <div style={{ flex: 1, fontSize: 12, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.desc}</div>
                       <div style={{ fontSize: 13, fontWeight: 700, color: isInc ? '#16A34A' : '#DC2626', flexShrink: 0 }}>{isInc ? '+' : '-'}{fmt(tx.value, {short:true})}</div>
                     </div>
                   </div>
@@ -276,7 +310,7 @@ function RelatorioMensalScreen({ onBack, transactions }) {
         )}
 
         <div style={{ background: '#EFF6FF', borderRadius: 12, padding: '10px 14px', border: '1px solid #DBEAFE', fontSize: 11, color: '#2563EB', textAlign: 'center', fontWeight: 600 }}>
-          Tire um screenshot para exportar este relatório
+          Use o botão CSV para exportar ou tire um screenshot deste relatório
         </div>
 
       </div>
@@ -323,16 +357,16 @@ function PGBLScreen({ onBack }) {
   const aliquotas  = [7.5, 15, 22.5, 27.5];
 
   return (
-    <div style={{ height: '100%', overflowY: 'auto', background: '#F7F8FA', fontFamily: 'DM Sans, system-ui' }}>
+    <div style={{ height: '100%', overflowY: 'auto', background: 'var(--bg-app)', fontFamily: 'DM Sans, system-ui' }}>
       <div style={{ padding: 'var(--pad-top) var(--pad-x) var(--pad-bottom)', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={onBack} style={{ width: 36, height: 36, borderRadius: '50%', background: '#fff', border: '1.5px solid #ECEEF4', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(26,31,54,0.08)', flexShrink: 0 }}>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="#1A1F36" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <button onClick={onBack} style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--bg-card)', border: '1.5px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(26,31,54,0.08)', flexShrink: 0 }}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="var(--text-primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>
           <div>
-            <div style={{ fontSize: 19, fontWeight: 700, color: '#1A1F36' }}>PGBL vs CDB</div>
-            <div style={{ fontSize: 11, color: '#8B90A0', marginTop: 1 }}>Previdência privada vs renda fixa</div>
+            <div style={{ fontSize: 19, fontWeight: 700, color: 'var(--text-primary)' }}>PGBL vs CDB</div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>Previdência privada vs renda fixa</div>
           </div>
         </div>
 
@@ -343,26 +377,26 @@ function PGBLScreen({ onBack }) {
             ['Aporte mensal (R$)', aporte, setAporte],
           ].map(([lbl, val, setVal]) => (
             <div key={lbl} style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 11, color: '#8B90A0', marginBottom: 5, fontWeight: 600 }}>{lbl}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 5, fontWeight: 600 }}>{lbl}</div>
               <input value={val === 0 ? '' : val.toLocaleString('pt-BR')}
                 onChange={e => setVal(Number(e.target.value.replace(/\D/g,'')) || 0)}
-                style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '1.5px solid #ECEEF4', fontSize: 15, fontWeight: 700, color: '#1A1F36', background: '#F7F8FA', outline: 'none', fontFamily: 'DM Sans, system-ui', boxSizing: 'border-box' }} inputMode="numeric"/>
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '1.5px solid var(--border)', fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', background: 'var(--bg-app)', outline: 'none', fontFamily: 'DM Sans, system-ui', boxSizing: 'border-box' }} inputMode="numeric"/>
             </div>
           ))}
 
           <div style={{ marginBottom: 12 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span style={{ fontSize: 11, color: '#8B90A0', fontWeight: 600 }}>Prazo de acumulação</span>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>Prazo de acumulação</span>
               <span style={{ fontSize: 14, fontWeight: 800, color: '#2563EB' }}>{anos} anos</span>
             </div>
             <input type="range" min="5" max="35" step="1" value={anos} onChange={e => setAnos(Number(e.target.value))} style={{ width: '100%', accentColor: '#2563EB' }}/>
           </div>
 
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 11, color: '#8B90A0', fontWeight: 600, marginBottom: 6 }}>Alíquota de IR (faixa)</div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, marginBottom: 6 }}>Alíquota de IR (faixa)</div>
             <div style={{ display: 'flex', gap: 6 }}>
               {aliquotas.map(a => (
-                <button key={a} onClick={() => setAliqIR(a)} style={{ flex: 1, padding: '7px 4px', borderRadius: 10, border: `1.5px solid ${aliqIR === a ? '#2563EB' : '#ECEEF4'}`, background: aliqIR === a ? '#EFF6FF' : '#fff', color: aliqIR === a ? '#2563EB' : '#8B90A0', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, system-ui' }}>
+                <button key={a} onClick={() => setAliqIR(a)} style={{ flex: 1, padding: '7px 4px', borderRadius: 10, border: `1.5px solid ${aliqIR === a ? '#2563EB' : 'var(--border)'}`, background: aliqIR === a ? '#EFF6FF' : 'var(--bg-card)', color: aliqIR === a ? '#2563EB' : 'var(--text-muted)', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, system-ui' }}>
                   {a}%
                 </button>
               ))}
@@ -370,10 +404,10 @@ function PGBLScreen({ onBack }) {
           </div>
 
           <div>
-            <div style={{ fontSize: 11, color: '#8B90A0', fontWeight: 600, marginBottom: 6 }}>Tabela IR na retirada</div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, marginBottom: 6 }}>Tabela IR na retirada</div>
             <div style={{ display: 'flex', gap: 6 }}>
               {[['progressiva','Progressiva'],['regressiva','Regressiva 10%']].map(([k, l]) => (
-                <button key={k} onClick={() => setTabela(k)} style={{ flex: 1, padding: '7px 8px', borderRadius: 10, border: `1.5px solid ${tabela === k ? '#7C3AED' : '#ECEEF4'}`, background: tabela === k ? '#F5F3FF' : '#fff', color: tabela === k ? '#7C3AED' : '#8B90A0', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, system-ui' }}>
+                <button key={k} onClick={() => setTabela(k)} style={{ flex: 1, padding: '7px 8px', borderRadius: 10, border: `1.5px solid ${tabela === k ? '#7C3AED' : 'var(--border)'}`, background: tabela === k ? '#F5F3FF' : 'var(--bg-card)', color: tabela === k ? '#7C3AED' : 'var(--text-muted)', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, system-ui' }}>
                   {l}
                 </button>
               ))}
@@ -391,8 +425,8 @@ function PGBLScreen({ onBack }) {
             ['Aporte + economia/mês',  fmt(aporteComEconomia)             ],
           ].map(([l, v, bold]) => (
             <div key={l} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-              <span style={{ fontSize: 12, color: '#8B90A0' }}>{l}</span>
-              <span style={{ fontSize: bold ? 14 : 12, fontWeight: bold ? 800 : 700, color: bold ? '#16A34A' : '#1A1F36' }}>{v}</span>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{l}</span>
+              <span style={{ fontSize: bold ? 14 : 12, fontWeight: bold ? 800 : 700, color: bold ? '#16A34A' : 'var(--text-primary)' }}>{v}</span>
             </div>
           ))}
         </Card>
@@ -402,7 +436,7 @@ function PGBLScreen({ onBack }) {
           <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
             Vantagem: {vantagem} em {anos} anos
           </div>
-          <div style={{ fontSize: 28, fontWeight: 800, color: '#fff', letterSpacing: '-0.5px', marginBottom: 14 }}>
+          <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--text-inverse)', letterSpacing: '-0.5px', marginBottom: 14 }}>
             +{fmt(Math.abs(diff), {short:true})} a mais
           </div>
           <div style={{ display: 'flex' }}>
@@ -479,16 +513,16 @@ function ScoreSaudeScreen({ onBack }) {
   }));
 
   return (
-    <div style={{ height: '100%', overflowY: 'auto', background: '#F7F8FA', fontFamily: 'DM Sans, system-ui' }}>
+    <div style={{ height: '100%', overflowY: 'auto', background: 'var(--bg-app)', fontFamily: 'DM Sans, system-ui' }}>
       <div style={{ padding: 'var(--pad-top) var(--pad-x) var(--pad-bottom)', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={onBack} style={{ width: 36, height: 36, borderRadius: '50%', background: '#fff', border: '1.5px solid #ECEEF4', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(26,31,54,0.08)', flexShrink: 0 }}>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="#1A1F36" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <button onClick={onBack} style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--bg-card)', border: '1.5px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(26,31,54,0.08)', flexShrink: 0 }}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="var(--text-primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>
           <div>
-            <div style={{ fontSize: 19, fontWeight: 700, color: '#1A1F36' }}>Score de Saúde Financeira</div>
-            <div style={{ fontSize: 11, color: '#8B90A0', marginTop: 1 }}>Diagnóstico completo em 5 pilares</div>
+            <div style={{ fontSize: 19, fontWeight: 700, color: 'var(--text-primary)' }}>Score de Saúde Financeira</div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>Diagnóstico completo em 5 pilares</div>
           </div>
         </div>
 
@@ -504,12 +538,12 @@ function ScoreSaudeScreen({ onBack }) {
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 11, color: '#94A3CC', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 4 }}>Pontuação geral</div>
             <div style={{ fontSize: 36, fontWeight: 900, color: gradeColor, letterSpacing: '-1px', lineHeight: 1, marginBottom: 6 }}>{total}</div>
-            <div style={{ fontSize: 13, color: '#fff', fontWeight: 600 }}>{gradeMsg}</div>
+            <div style={{ fontSize: 13, color: 'var(--text-inverse)', fontWeight: 600 }}>{gradeMsg}</div>
           </div>
         </div>
 
         {/* Pillar cards */}
-        <div style={{ fontSize: 12, fontWeight: 600, color: '#8B90A0', letterSpacing: '0.05em', textTransform: 'uppercase', paddingLeft: 2 }}>5 Pilares</div>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', paddingLeft: 2 }}>5 Pilares</div>
         {pillars.map((p, i) => {
           const pct = Math.round(p.score / p.max * 100);
           const col = segments[i].color;
@@ -517,15 +551,15 @@ function ScoreSaudeScreen({ onBack }) {
             <Card key={i} style={{ padding: '14px 16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#1A1F36', marginBottom: 1 }}>{p.label}</div>
-                  <div style={{ fontSize: 11, color: '#8B90A0' }}>{p.value}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 1 }}>{p.label}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{p.value}</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: 20, fontWeight: 900, color: col }}>{p.score}</div>
-                  <div style={{ fontSize: 10, color: '#8B90A0' }}>/{p.max} pts</div>
+                  <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>/{p.max} pts</div>
                 </div>
               </div>
-              <div style={{ height: 6, background: '#F0F1F5', borderRadius: 3, overflow: 'hidden', marginBottom: 6 }}>
+              <div style={{ height: 6, background: 'var(--bg-subtle)', borderRadius: 3, overflow: 'hidden', marginBottom: 6 }}>
                 <div style={{ width: `${pct}%`, height: '100%', background: col, borderRadius: 3, transition: 'width 0.6s ease' }}/>
               </div>
               <div style={{ fontSize: 11, color: pct >= 80 ? '#16A34A' : pct >= 50 ? '#F59E0B' : '#DC2626', fontWeight: 600 }}>

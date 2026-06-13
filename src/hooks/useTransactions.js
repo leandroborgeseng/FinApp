@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as txApi from '../api/transactions.js';
+import { toast } from '../lib/toast.js';
 
 export function useTransactions({ month, entity } = {}) {
   return useQuery({
@@ -19,18 +20,39 @@ export function useTransactionMutations() {
 
   const create = useMutation({
     mutationFn: txApi.createTransaction,
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      toast.success('Lançamento salvo');
+    },
+    onError: (err) => toast.error(err?.message),
   });
 
   const update = useMutation({
     mutationFn: ({ id, patch }) => txApi.updateTransaction(id, patch),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      toast.success('Lançamento atualizado');
+    },
+    onError: (err) => toast.error(err?.message),
   });
 
   const remove = useMutation({
     mutationFn: txApi.deleteTransaction,
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      toast.success('Lançamento removido');
+    },
+    onError: (err) => toast.error(err?.message),
   });
 
-  return { create, update, remove };
+  const bulkCreate = useMutation({
+    mutationFn: txApi.createTransactionsBulk,
+    onSuccess: (list) => {
+      invalidate();
+      toast.success(`${list?.length || 0} parcelas geradas`);
+    },
+    onError: (err) => toast.error(err?.message),
+  });
+
+  return { create, update, remove, bulkCreate };
 }

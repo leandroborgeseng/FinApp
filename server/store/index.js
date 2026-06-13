@@ -135,7 +135,7 @@ export async function listTransactions(userId, { month, entity } = {}) {
 }
 
 export async function createTransaction(userId, data) {
-  const tx = { id: String(Date.now()), done: false, ...data };
+  const tx = { id: String(Date.now() + Math.random()).replace('.', ''), done: false, ...data };
   if (getPool()) {
     await query(
       `INSERT INTO transactions (id, user_id, description, value, type, entity, date, done, cat)
@@ -146,6 +146,14 @@ export async function createTransaction(userId, data) {
     memory.transactions.unshift(tx);
   }
   return tx;
+}
+
+export async function createTransactionsBulk(userId, list = []) {
+  const created = [];
+  for (const data of list) {
+    created.push(await createTransaction(userId, data));
+  }
+  return created;
 }
 
 export async function updateTransaction(userId, id, patch) {
@@ -231,6 +239,7 @@ export async function getSnapshot(userId) {
     investments: memory.investments ?? base.investments,
     goals: memory.goals ?? base.goals,
     financingList: memory.financingList ?? base.financingList,
+    accounts: memory.accounts ?? base.accounts,
   };
 }
 

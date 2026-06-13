@@ -56,6 +56,19 @@ router.get('/financings', async (req, res) => {
   res.json(snap.financingList || []);
 });
 
+router.post('/financings', async (req, res) => {
+  const snap = await store.getSnapshot(req.user.id);
+  const fin = req.body;
+  if (!fin?.bank || fin.balance == null) return res.status(400).json({ error: 'Dados inválidos' });
+  const list = [...(snap.financingList || [])];
+  const id = fin.id || `fin-${Date.now()}`;
+  if (list.some((f) => f.id === id)) return res.status(409).json({ error: 'Financiamento já existe' });
+  const entry = { ...fin, id };
+  list.push(entry);
+  await store.updateSnapshot(req.user.id, { financingList: list });
+  res.status(201).json(entry);
+});
+
 router.put('/financings/:id', async (req, res) => {
   const snap = await store.getSnapshot(req.user.id);
   const idx = (snap.financingList || []).findIndex((f) => f.id === req.params.id);
@@ -113,6 +126,21 @@ router.put('/repasse/month/:idx', async (req, res) => {
   }
 
   res.json(snap.repasse.months[idx]);
+});
+
+router.get('/accounts', async (req, res) => {
+  const snap = await store.getSnapshot(req.user.id);
+  res.json(snap.accounts || []);
+});
+
+router.put('/accounts/:id', async (req, res) => {
+  const snap = await store.getSnapshot(req.user.id);
+  const list = [...(snap.accounts || [])];
+  const idx = list.findIndex((a) => a.id === req.params.id);
+  if (idx < 0) return res.status(404).json({ error: 'Conta não encontrada' });
+  list[idx] = { ...list[idx], ...req.body };
+  await store.updateSnapshot(req.user.id, { accounts: list });
+  res.json(list[idx]);
 });
 
 router.get('/goals', async (req, res) => {

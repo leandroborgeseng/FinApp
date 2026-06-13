@@ -113,7 +113,7 @@ function NovoLancamentoModal({ onClose, onSave, onSaveFinancing }) {
   return (
     <div style={{ position:'absolute', inset:0, zIndex:100, display:'flex', flexDirection:'column', justifyContent:'flex-end', background:'rgba(15,20,40,0.45)' }}
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{ background:'#fff', borderRadius:'24px 24px 0 0', padding:'0 0 40px', boxShadow:'0 -8px 40px rgba(0,0,0,0.12)', maxHeight:'92%', overflowY:'auto' }}>
+      <div style={{ background:'var(--bg-card)', borderRadius:'24px 24px 0 0', padding:'0 0 40px', boxShadow:'0 -8px 40px rgba(0,0,0,0.12)', maxHeight:'92%', overflowY:'auto' }}>
 
         <div style={{ display:'flex', justifyContent:'center', paddingTop:12, paddingBottom:4 }}>
           <div style={{ width:36, height:4, borderRadius:2, background:'#DCDEE6' }}/>
@@ -132,7 +132,7 @@ function NovoLancamentoModal({ onClose, onSave, onSaveFinancing }) {
             <span style={lbl}>Tipo</span>
             <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
               {Object.entries(typeConfig).map(([k, cfg]) => (
-                <button key={k} onClick={() => setType(k)} style={{ flex:1, minWidth:'28%', padding:'8px 4px', borderRadius:10, border:'1.5px solid', borderColor: type===k ? cfg.color : '#ECEEF4', background: type===k ? cfg.bg : '#fff', cursor:'pointer', fontFamily:'DM Sans, system-ui', fontSize:11, fontWeight:600, color: type===k ? cfg.color : '#8B90A0', transition:'all 0.15s' }}>
+                <button key={k} onClick={() => setType(k)} style={{ flex:1, minWidth:'28%', padding:'8px 4px', borderRadius:10, border:'1.5px solid', borderColor: type===k ? cfg.color : 'var(--border)', background: type===k ? cfg.bg : 'var(--bg-card)', cursor:'pointer', fontFamily:'DM Sans, system-ui', fontSize:11, fontWeight:600, color: type===k ? cfg.color : 'var(--text-muted)', transition:'all 0.15s' }}>
                   {cfg.label}
                 </button>
               ))}
@@ -153,7 +153,7 @@ function NovoLancamentoModal({ onClose, onSave, onSaveFinancing }) {
               <label style={lbl}>Sistema de amortização</label>
               <div style={{ display:'flex', background:'#ECEEF4', borderRadius:12, padding:3, gap:2 }}>
                 {[['price','Tabela Price'],['sac','SAC']].map(([k,l]) => (
-                  <button key={k} onClick={() => setFSistema(k)} style={{ flex:1, padding:'8px', borderRadius:9, border:'none', cursor:'pointer', background: fSistema===k ? '#fff' : 'transparent', color: fSistema===k ? '#1A1F36' : '#8B90A0', fontWeight: fSistema===k ? 700 : 500, fontSize:13, fontFamily:'DM Sans, system-ui', boxShadow: fSistema===k ? '0 1px 4px rgba(26,31,54,0.1)' : 'none', transition:'all 0.2s' }}>
+                  <button key={k} onClick={() => setFSistema(k)} style={{ flex:1, padding:'8px', borderRadius:9, border:'none', cursor:'pointer', background: fSistema===k ? 'var(--bg-card)' : 'transparent', color: fSistema===k ? '#1A1F36' : 'var(--text-muted)', fontWeight: fSistema===k ? 700 : 500, fontSize:13, fontFamily:'DM Sans, system-ui', boxShadow: fSistema===k ? '0 1px 4px rgba(26,31,54,0.1)' : 'none', transition:'all 0.2s' }}>
                     {l}
                   </button>
                 ))}
@@ -263,7 +263,7 @@ function NovoLancamentoModal({ onClose, onSave, onSaveFinancing }) {
             </div>
           </>)}
 
-          <button onClick={handleSave} style={{ width:'100%', padding:'15px', borderRadius:14, background: canSave ? (isFinanc ? '#EA580C' : '#2563EB') : '#ECEEF4', color: canSave ? '#fff' : '#8B90A0', border:'none', cursor: canSave ? 'pointer' : 'default', fontSize:16, fontWeight:700, fontFamily:'DM Sans, system-ui', transition:'background 0.2s' }}>
+          <button onClick={handleSave} style={{ width:'100%', padding:'15px', borderRadius:14, background: canSave ? (isFinanc ? '#EA580C' : '#2563EB') : 'var(--border)', color: canSave ? 'var(--bg-card)' : 'var(--text-muted)', border:'none', cursor: canSave ? 'pointer' : 'default', fontSize:16, fontWeight:700, fontFamily:'DM Sans, system-ui', transition:'background 0.2s' }}>
             {isFinanc ? 'Criar financiamento e gerar cronograma' : 'Salvar lançamento'}
           </button>
         </div>

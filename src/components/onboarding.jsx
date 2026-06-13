@@ -1,10 +1,14 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
+import { register } from '../api/auth.js';
+import { toast } from '../lib/toast.js';
 
 function OnboardingApp() {
   const { login } = useAuth();
   const [step, setStep]   = React.useState('slides');
   const [slide, setSlide] = React.useState(0);
+  const [mode, setMode]   = React.useState('login');
+  const [nome, setNome]   = React.useState('');
   const [email, setEmail] = React.useState('');
   const [senha, setSenha] = React.useState('');
   const [erro,  setErro]  = React.useState('');
@@ -55,6 +59,22 @@ function OnboardingApp() {
     },
   ];
 
+  const handleRegister = async () => {
+    if (!nome.trim()) { setErro('Informe seu nome'); return; }
+    if (!email.trim()) { setErro('Informe seu e-mail'); return; }
+    if (senha.length < 6) { setErro('Senha com pelo menos 6 caracteres'); return; }
+    setErro('');
+    setLoading(true);
+    try {
+      await register(email.trim(), senha, nome.trim());
+      toast.success('Conta criada com sucesso');
+    } catch (e) {
+      setErro(e.message || 'Falha ao criar conta');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLogin = async () => {
     if (!email.trim()) { setErro('Informe seu e-mail'); return; }
     if (!senha.trim())  { setErro('Informe sua senha'); return; }
@@ -88,7 +108,7 @@ function OnboardingApp() {
   return (
     <div style={{
       width: '100%', minHeight: '100dvh',
-      background: '#F7F8FA',
+      background: 'var(--bg-app)',
       overflow: 'hidden',
       position: 'relative',
       fontFamily: 'DM Sans, system-ui',
@@ -97,12 +117,12 @@ function OnboardingApp() {
     }}>
 
       {step === 'slides' && (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#fff' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--bg-card)' }}>
 
           {/* Skip button */}
           <div style={{ padding: '16px 24px 0', display: 'flex', justifyContent: 'flex-end' }}>
             <button onClick={() => setStep('login')}
-              style={{ background: 'none', border: 'none', color: '#8B90A0', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, system-ui' }}>
+              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, system-ui' }}>
               Pular
             </button>
           </div>
@@ -110,10 +130,10 @@ function OnboardingApp() {
           {/* Slide content */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 32px' }}>
             <div style={{ marginBottom: 32 }}>{slides[slide].icon}</div>
-            <div style={{ fontSize: 26, fontWeight: 800, color: '#1A1F36', textAlign: 'center', lineHeight: 1.2, marginBottom: 16, letterSpacing: '-0.5px' }}>
+            <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-primary)', textAlign: 'center', lineHeight: 1.2, marginBottom: 16, letterSpacing: '-0.5px' }}>
               {slides[slide].title}
             </div>
-            <div style={{ fontSize: 15, color: '#8B90A0', textAlign: 'center', lineHeight: 1.6 }}>
+            <div style={{ fontSize: 15, color: 'var(--text-muted)', textAlign: 'center', lineHeight: 1.6 }}>
               {slides[slide].sub}
             </div>
           </div>
@@ -123,7 +143,7 @@ function OnboardingApp() {
             {slides.map((_, i) => (
               <div key={i} onClick={() => setSlide(i)} style={{
                 width: i === slide ? 24 : 8, height: 8, borderRadius: 4,
-                background: i === slide ? accentColor : '#ECEEF4',
+                background: i === slide ? accentColor : 'var(--border)',
                 transition: 'all 0.3s ease', cursor: 'pointer',
               }}/>
             ))}
@@ -134,7 +154,7 @@ function OnboardingApp() {
             {slide < slides.length - 1 ? (
               <button onClick={() => setSlide(s => s + 1)} style={{
                 width: '100%', padding: '16px', borderRadius: 16, border: 'none',
-                background: accentColor, color: '#fff', fontSize: 16, fontWeight: 700,
+                background: accentColor, color: 'var(--text-inverse)', fontSize: 16, fontWeight: 700,
                 cursor: 'pointer', fontFamily: 'DM Sans, system-ui',
                 boxShadow: '0 4px 16px ' + accentColor + '44',
                 transition: 'all 0.2s',
@@ -142,7 +162,7 @@ function OnboardingApp() {
             ) : (
               <button onClick={() => setStep('login')} style={{
                 width: '100%', padding: '16px', borderRadius: 16, border: 'none',
-                background: 'linear-gradient(135deg,#1A1F36,#2563EB)', color: '#fff', fontSize: 16, fontWeight: 700,
+                background: 'linear-gradient(135deg,#1A1F36,#2563EB)', color: 'var(--text-inverse)', fontSize: 16, fontWeight: 700,
                 cursor: 'pointer', fontFamily: 'DM Sans, system-ui',
                 boxShadow: '0 4px 20px rgba(37,99,235,0.35)',
               }}>Começar agora</button>
@@ -152,10 +172,10 @@ function OnboardingApp() {
       )}
 
       {step === 'login' && (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#fff' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--bg-card)' }}>
 
           {/* Top brand area */}
-          <div style={{ background: '#1A1F36', padding: '28px 28px 40px', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ background: 'var(--text-primary)', padding: '28px 28px 40px', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', right: -20, top: -20, width: 140, height: 140, borderRadius: '50%', background: 'rgba(37,99,235,0.18)' }}/>
             <div style={{ position: 'absolute', right: 30, bottom: -30, width: 80, height: 80, borderRadius: '50%', background: 'rgba(124,58,237,0.14)' }}/>
             <div style={{ position: 'relative' }}>
@@ -163,18 +183,41 @@ function OnboardingApp() {
                 <div style={{ width: 36, height: 36, borderRadius: 10, background: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="7" width="5" height="9" rx="1.5" fill="white"/><rect x="8" y="4" width="5" height="12" rx="1.5" fill="rgba(255,255,255,0.7)"/><rect x="14" y="1" width="2" height="15" rx="1" fill="rgba(255,255,255,0.4)"/></svg>
                 </div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: '#fff', letterSpacing: '-0.3px' }}>FinApp</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-inverse)', letterSpacing: '-0.3px' }}>FinApp</div>
               </div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: '#fff', marginBottom: 4 }}>Bem-vindo de volta</div>
-              <div style={{ fontSize: 14, color: '#94A3CC' }}>Entre com sua conta para continuar</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-inverse)', marginBottom: 4 }}>
+                {mode === 'login' ? 'Bem-vindo de volta' : 'Criar conta'}
+              </div>
+              <div style={{ fontSize: 14, color: '#94A3CC' }}>
+                {mode === 'login' ? 'Entre com sua conta para continuar' : 'Comece a organizar PF e PJ'}
+              </div>
             </div>
           </div>
 
           {/* Form */}
           <div style={{ flex: 1, padding: '32px 28px 40px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
+            {mode === 'register' && (
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 8 }}>Nome</div>
+                <input
+                  type="text"
+                  value={nome}
+                  onChange={e => { setNome(e.target.value); setErro(''); }}
+                  placeholder="Seu nome"
+                  style={{
+                    width: '100%', padding: '14px 16px', borderRadius: 14,
+                    border: '1.5px solid var(--border)',
+                    fontSize: 15, fontWeight: 500, color: 'var(--text-primary)',
+                    background: 'var(--bg-app)', outline: 'none',
+                    fontFamily: 'DM Sans, system-ui', boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+            )}
+
             <div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#8B90A0', marginBottom: 8 }}>E-mail</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 8 }}>E-mail</div>
               <input
                 type="email"
                 value={email}
@@ -182,9 +225,9 @@ function OnboardingApp() {
                 placeholder="seu@email.com"
                 style={{
                   width: '100%', padding: '14px 16px', borderRadius: 14,
-                  border: '1.5px solid ' + (erro && !email ? '#EF4444' : '#ECEEF4'),
-                  fontSize: 15, fontWeight: 500, color: '#1A1F36',
-                  background: '#F7F8FA', outline: 'none',
+                  border: '1.5px solid ' + (erro && !email ? '#EF4444' : 'var(--border)'),
+                  fontSize: 15, fontWeight: 500, color: 'var(--text-primary)',
+                  background: 'var(--bg-app)', outline: 'none',
                   fontFamily: 'DM Sans, system-ui', boxSizing: 'border-box',
                   transition: 'border-color 0.2s',
                 }}
@@ -194,7 +237,7 @@ function OnboardingApp() {
             </div>
 
             <div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#8B90A0', marginBottom: 8 }}>Senha</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 8 }}>Senha</div>
               <input
                 type="password"
                 value={senha}
@@ -202,15 +245,15 @@ function OnboardingApp() {
                 placeholder="••••••••"
                 style={{
                   width: '100%', padding: '14px 16px', borderRadius: 14,
-                  border: '1.5px solid ' + (erro && !senha ? '#EF4444' : '#ECEEF4'),
-                  fontSize: 15, color: '#1A1F36',
-                  background: '#F7F8FA', outline: 'none',
+                  border: '1.5px solid ' + (erro && !senha ? '#EF4444' : 'var(--border)'),
+                  fontSize: 15, color: 'var(--text-primary)',
+                  background: 'var(--bg-app)', outline: 'none',
                   fontFamily: 'DM Sans, system-ui', boxSizing: 'border-box',
                   transition: 'border-color 0.2s',
                 }}
                 onFocus={e => e.target.style.borderColor = '#2563EB'}
                 onBlur={e => e.target.style.borderColor = '#ECEEF4'}
-                onKeyDown={e => e.key === 'Enter' && handleLogin()}
+                onKeyDown={e => e.key === 'Enter' && (mode === 'login' ? handleLogin() : handleRegister())}
               />
             </div>
 
@@ -220,16 +263,25 @@ function OnboardingApp() {
               </div>
             )}
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <button style={{ background: 'none', border: 'none', fontSize: 13, color: '#2563EB', fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, system-ui' }}>
-                Esqueci a senha
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <button
+                type="button"
+                onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setErro(''); }}
+                style={{ background: 'none', border: 'none', fontSize: 13, color: '#2563EB', fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, system-ui' }}
+              >
+                {mode === 'login' ? 'Criar conta' : 'Já tenho conta'}
               </button>
+              {mode === 'login' && (
+                <button style={{ background: 'none', border: 'none', fontSize: 13, color: '#2563EB', fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, system-ui' }}>
+                  Esqueci a senha
+                </button>
+              )}
             </div>
 
-            <button onClick={handleLogin} disabled={loading} style={{
+            <button onClick={mode === 'login' ? handleLogin : handleRegister} disabled={loading} style={{
               width: '100%', padding: '16px', borderRadius: 16, border: 'none',
               background: loading ? '#C4C7D4' : 'linear-gradient(135deg,#1A1F36,#2563EB)',
-              color: '#fff', fontSize: 16, fontWeight: 700,
+              color: 'var(--text-inverse)', fontSize: 16, fontWeight: 700,
               cursor: loading ? 'default' : 'pointer',
               fontFamily: 'DM Sans, system-ui',
               boxShadow: loading ? 'none' : '0 4px 20px rgba(37,99,235,0.3)',
@@ -238,14 +290,14 @@ function OnboardingApp() {
             }}>
               {loading ? (
                 <>
-                  <div style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }}/>
+                  <div style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: 'var(--bg-card)', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }}/>
                   Entrando…
                 </>
-              ) : 'Entrar'}
+              ) : (mode === 'login' ? 'Entrar' : 'Criar conta')}
             </button>
 
             <button onClick={() => setStep('slides')}
-              style={{ background: 'none', border: 'none', color: '#8B90A0', fontSize: 13, cursor: 'pointer', fontFamily: 'DM Sans, system-ui', marginTop: 4 }}>
+              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 13, cursor: 'pointer', fontFamily: 'DM Sans, system-ui', marginTop: 4 }}>
               ← Voltar para apresentação
             </button>
           </div>
@@ -259,9 +311,9 @@ function OnboardingApp() {
             }}>
               Entrar com conta demo
             </button>
-            <div style={{ background: '#F7F8FA', borderRadius: 12, padding: '12px 14px', border: '1px solid #ECEEF4' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#8B90A0', marginBottom: 2 }}>Credenciais demo</div>
-              <div style={{ fontSize: 11, color: '#8B90A0' }}>demo@finapp.com · finapp2026</div>
+            <div style={{ background: 'var(--bg-app)', borderRadius: 12, padding: '12px 14px', border: '1px solid var(--border)' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 2 }}>Credenciais demo</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>demo@finapp.com · finapp2026</div>
             </div>
           </div>
         </div>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { fmt } from '../data.js';
-import { Card } from './screens-a.jsx';
-import { repasseMonthIndex } from '../lib/dates.js';
+import { Card, Tag } from './screens-a.jsx';
+import { repasseMonthIndex, repasseTotalDone } from '../lib/dates.js';
 // screens-repasse.jsx — Controle de Repasse PJ → PF
 
 function RepasseScreen({ repasse, onUpdateRepasse, onUpdateMonth, onBack }) {
@@ -10,7 +10,7 @@ function RepasseScreen({ repasse, onUpdateRepasse, onUpdateMonth, onBack }) {
 
   const currentIdx = repasseMonthIndex(repasse);
 
-  const totalDone  = months.filter((_, i) => i < currentIdx).reduce((s, m) => s + m.amount, 0);
+  const totalDone  = repasseTotalDone(months);
   const totalProj  = months.reduce((s, m) => s + m.amount, 0);
   const usedPct    = (totalDone / annualLimit) * 100;
   const projPct    = (totalProj / annualLimit) * 100;
@@ -33,24 +33,24 @@ function RepasseScreen({ repasse, onUpdateRepasse, onUpdateMonth, onBack }) {
   };
 
   return (
-    <div style={{ height: '100%', overflowY: 'auto', background: '#F7F8FA', fontFamily: 'DM Sans, system-ui' }}>
+    <div style={{ height: '100%', overflowY: 'auto', background: 'var(--bg-app)', fontFamily: 'DM Sans, system-ui' }}>
       <div style={{ padding: 'var(--pad-top) var(--pad-x) var(--pad-bottom)', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button onClick={onBack} style={{
-            width: 36, height: 36, borderRadius: '50%', background: '#fff',
-            border: '1.5px solid #ECEEF4', cursor: 'pointer', flexShrink: 0,
+            width: 36, height: 36, borderRadius: '50%', background: 'var(--bg-card)',
+            border: '1.5px solid var(--border)', cursor: 'pointer', flexShrink: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 1px 4px rgba(26,31,54,0.08)',
           }}>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M10 3L5 8L10 13" stroke="#1A1F36" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M10 3L5 8L10 13" stroke="var(--text-primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
           <div>
-            <div style={{ fontSize: 19, fontWeight: 700, color: '#1A1F36', lineHeight: 1.2 }}>Repasse PJ → PF</div>
-            <div style={{ fontSize: 11, color: '#8B90A0', marginTop: 1 }}>Controle de retiradas {year}</div>
+            <div style={{ fontSize: 19, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2 }}>Repasse PJ → PF</div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>Controle de retiradas {year}</div>
           </div>
         </div>
 
@@ -60,7 +60,7 @@ function RepasseScreen({ repasse, onUpdateRepasse, onUpdateMonth, onBack }) {
             Limite Anual {year}
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 16 }}>
-            <div style={{ fontSize: 30, fontWeight: 800, color: '#fff', letterSpacing: '-0.5px' }}>{fmt(totalDone)}</div>
+            <div style={{ fontSize: 30, fontWeight: 800, color: 'var(--text-inverse)', letterSpacing: '-0.5px' }}>{fmt(totalDone)}</div>
             <div style={{ fontSize: 13, color: '#94A3CC' }}>realizado até agora</div>
           </div>
 
@@ -116,7 +116,7 @@ function RepasseScreen({ repasse, onUpdateRepasse, onUpdateMonth, onBack }) {
               <div style={{ fontSize: 13, fontWeight: 700, color: isOver ? '#DC2626' : '#D97706' }}>
                 {isOver ? 'Limite anual excedido' : 'Próximo do limite anual'}
               </div>
-              <div style={{ fontSize: 11, color: '#8B90A0', marginTop: 2 }}>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
                 {isOver
                   ? `Reduza os repasses. Excesso: ${fmt(totalProj - annualLimit, { short: true })}`
                   : `Projeção em ${Math.round(projPct)}% — ainda ${fmt(remaining, { short: true })} disponível`}
@@ -129,24 +129,24 @@ function RepasseScreen({ repasse, onUpdateRepasse, onUpdateMonth, onBack }) {
         <Card style={{ padding: '14px 18px' }}>
           <div style={{ display: 'flex', gap: 24 }}>
             <div>
-              <div style={{ fontSize: 11, color: '#8B90A0', marginBottom: 3 }}>Limite mensal</div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: '#1A1F36' }}>{fmt(monthlyLimit)}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 3 }}>Limite mensal</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>{fmt(monthlyLimit)}</div>
             </div>
-            <div style={{ width: 1, background: '#F0F1F5' }}/>
+            <div style={{ width: 1, background: 'var(--bg-subtle)' }}/>
             <div>
-              <div style={{ fontSize: 11, color: '#8B90A0', marginBottom: 3 }}>Dia do repasse</div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: '#1A1F36' }}>Dia {day}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 3 }}>Dia do repasse</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>Dia {day}</div>
             </div>
-            <div style={{ width: 1, background: '#F0F1F5' }}/>
+            <div style={{ width: 1, background: 'var(--bg-subtle)' }}/>
             <div>
-              <div style={{ fontSize: 11, color: '#8B90A0', marginBottom: 3 }}>Máx. anual</div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: '#1A1F36' }}>R$ 600k</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 3 }}>Máx. anual</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>R$ 600k</div>
             </div>
           </div>
         </Card>
 
         {/* Month label */}
-        <div style={{ fontSize: 12, fontWeight: 600, color: '#8B90A0', letterSpacing: '0.05em', textTransform: 'uppercase', paddingLeft: 2 }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', paddingLeft: 2 }}>
           Meses de {year}
         </div>
 
@@ -162,7 +162,7 @@ function RepasseScreen({ repasse, onUpdateRepasse, onUpdateMonth, onBack }) {
 
             return (
               <div key={i}>
-                {i > 0 && <div style={{ height: 1, background: '#F4F5F8', margin: '0 12px' }}/>}
+                {i > 0 && <div style={{ height: 1, background: 'var(--divider)', margin: '0 12px' }}/>}
                 <div
                   onClick={() => !isPast && setEditIdx(isEditing ? null : i)}
                   style={{
@@ -187,7 +187,7 @@ function RepasseScreen({ repasse, onUpdateRepasse, onUpdateMonth, onBack }) {
 
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontSize: 14, fontWeight: isCurrent ? 700 : 600, color: isPast ? '#8B90A0' : '#1A1F36' }}>
+                        <span style={{ fontSize: 14, fontWeight: isCurrent ? 700 : 600, color: isPast ? 'var(--text-muted)' : 'var(--text-primary)' }}>
                           {m.m}
                         </span>
                         {isCurrent && (
@@ -195,6 +195,7 @@ function RepasseScreen({ repasse, onUpdateRepasse, onUpdateMonth, onBack }) {
                             ESTE MÊS
                           </span>
                         )}
+                        {m._pending && <Tag label="Aguardando sync" color="#F59E0B" bg="#FFFBEB"/>}
                       </div>
                       {overMon && (
                         <div style={{ fontSize: 10, color: '#DC2626', marginTop: 1 }}>Acima do limite mensal</div>
@@ -205,11 +206,11 @@ function RepasseScreen({ repasse, onUpdateRepasse, onUpdateMonth, onBack }) {
                     </div>
 
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: m.done ? '#16A34A' : isCurrent ? '#2563EB' : '#1A1F36' }}>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: m.done ? '#16A34A' : isCurrent ? '#2563EB' : 'var(--text-primary)' }}>
                         {fmt(m.amount)}
                       </div>
                       {!isPast && !isEditing && (
-                        <div style={{ fontSize: 9, color: '#C4C7D4', marginTop: 1 }}>editar</div>
+                        <div style={{ fontSize: 9, color: 'var(--text-faint)', marginTop: 1 }}>editar</div>
                       )}
                     </div>
                   </div>
@@ -217,21 +218,21 @@ function RepasseScreen({ repasse, onUpdateRepasse, onUpdateMonth, onBack }) {
                   {/* Edit panel */}
                   {isEditing && (
                     <div
-                      style={{ margin: '10px 0 12px', padding: '12px', background: '#F7F8FA', borderRadius: 10 }}
+                      style={{ margin: '10px 0 12px', padding: '12px', background: 'var(--bg-app)', borderRadius: 10 }}
                       onClick={e => e.stopPropagation()}
                     >
                       {/* Stepper */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
                         {[-5000, -1000].map(d => (
                           <button key={d} onClick={() => step(i, d)} style={{
-                            padding: '7px 10px', borderRadius: 9, background: '#fff',
-                            border: '1.5px solid #ECEEF4', fontSize: 11, fontWeight: 700,
+                            padding: '7px 10px', borderRadius: 9, background: 'var(--bg-card)',
+                            border: '1.5px solid var(--border)', fontSize: 11, fontWeight: 700,
                             color: '#DC2626', cursor: 'pointer', fontFamily: 'DM Sans, system-ui',
                           }}>{d === -5000 ? '−5k' : '−1k'}</button>
                         ))}
                         <div style={{
                           flex: 1, textAlign: 'center', padding: '9px 4px',
-                          background: '#fff', borderRadius: 10, border: '1.5px solid #2563EB',
+                          background: 'var(--bg-card)', borderRadius: 10, border: '1.5px solid #2563EB',
                           fontSize: 15, fontWeight: 700, color: '#2563EB',
                           fontFamily: 'DM Sans, system-ui',
                         }}>
@@ -239,8 +240,8 @@ function RepasseScreen({ repasse, onUpdateRepasse, onUpdateMonth, onBack }) {
                         </div>
                         {[1000, 5000].map(d => (
                           <button key={d} onClick={() => step(i, d)} style={{
-                            padding: '7px 10px', borderRadius: 9, background: '#fff',
-                            border: '1.5px solid #ECEEF4', fontSize: 11, fontWeight: 700,
+                            padding: '7px 10px', borderRadius: 9, background: 'var(--bg-card)',
+                            border: '1.5px solid var(--border)', fontSize: 11, fontWeight: 700,
                             color: '#16A34A', cursor: 'pointer', fontFamily: 'DM Sans, system-ui',
                           }}>{d === 1000 ? '+1k' : '+5k'}</button>
                         ))}
@@ -267,15 +268,15 @@ function RepasseScreen({ repasse, onUpdateRepasse, onUpdateMonth, onBack }) {
                         )}
                         <button onClick={() => setEditIdx(null)} style={{
                           width: 40, padding: '9px', borderRadius: 9, border: 'none',
-                          background: '#ECEEF4', color: '#8B90A0', fontSize: 16,
+                          background: 'var(--bg-toggle)', color: 'var(--text-muted)', fontSize: 16,
                           cursor: 'pointer', lineHeight: 1,
                         }}>✕</button>
                       </div>
 
                       {/* Annual impact preview */}
-                      <div style={{ marginTop: 8, fontSize: 11, color: '#8B90A0', textAlign: 'center' }}>
+                      <div style={{ marginTop: 8, fontSize: 11, color: 'var(--text-muted)', textAlign: 'center' }}>
                         Total anual projetado: {' '}
-                        <strong style={{ color: wouldOver ? '#DC2626' : '#1A1F36' }}>
+                        <strong style={{ color: wouldOver ? '#DC2626' : 'var(--text-primary)' }}>
                           {fmt(otherSum + m.amount, { short: true })}
                         </strong>
                         {' '}({Math.round((otherSum + m.amount) / annualLimit * 100)}% do limite)
@@ -295,11 +296,11 @@ function RepasseScreen({ repasse, onUpdateRepasse, onUpdateMonth, onBack }) {
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
             <div>
-              <div style={{ fontSize: 11, color: '#8B90A0', marginBottom: 3 }}>Total projetado {year}</div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: '#1A1F36' }}>{fmt(totalProj)}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 3 }}>Total projetado {year}</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)' }}>{fmt(totalProj)}</div>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 11, color: '#8B90A0', marginBottom: 3 }}>do limite anual</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 3 }}>do limite anual</div>
               <div style={{ fontSize: 22, fontWeight: 800, color: isOver ? '#DC2626' : isWarning ? '#F59E0B' : '#16A34A' }}>
                 {Math.round(projPct)}%
               </div>
@@ -312,8 +313,8 @@ function RepasseScreen({ repasse, onUpdateRepasse, onUpdateMonth, onBack }) {
               borderRadius: 4, transition: 'width 0.5s ease',
             }}/>
           </div>
-          <div style={{ marginTop: 8, fontSize: 11, color: '#8B90A0' }}>
-            Disponível: <strong style={{ color: remaining < 0 ? '#DC2626' : '#1A1F36' }}>
+          <div style={{ marginTop: 8, fontSize: 11, color: 'var(--text-muted)' }}>
+            Disponível: <strong style={{ color: remaining < 0 ? '#DC2626' : 'var(--text-primary)' }}>
               {remaining < 0 ? '−' : ''}{fmt(Math.abs(remaining))}
             </strong>
             {' '}para distribuir nos meses restantes

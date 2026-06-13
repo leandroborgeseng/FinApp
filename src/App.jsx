@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from './context/AuthContext.jsx';
-import { FinanceProvider, useBootstrap, useRepasse, usePreferences } from './hooks/useFinance.jsx';
+import { FinanceProvider, useBootstrap, useRepasse, usePreferences, useFinancings, slugify } from './hooks/useFinance.jsx';
 import { useTransactions, useTransactionActions } from './hooks/useTransactionActions.js';
 import { useSyncStatus } from './hooks/useSyncStatus.jsx';
 import { AppShell } from './components/AppShell.jsx';
@@ -15,6 +15,8 @@ import { IndependenciaScreen, TributarioScreen } from './screens/screens-analise
 import { ComparativoMesesScreen, CalculadoraRentabilidadeScreen } from './screens/screens-extra.jsx';
 import { SimuladorESeScreen, RelatorioMensalScreen, PGBLScreen, ScoreSaudeScreen } from './screens/screens-tools.jsx';
 import { RecorrenciasSheet } from './screens/screens-sheet.jsx';
+import { ToastHost } from './components/Toast.jsx';
+import { applyThemeClass } from './lib/theme.js';
 
 export default function App() {
   const { user, loading, isAuthenticated } = useAuth();
@@ -22,16 +24,28 @@ export default function App() {
   if (loading) {
     return (
       <div className="app-loading">
-        <div style={{ textAlign: 'center', padding: 40, color: '#8B90A0', fontFamily: 'DM Sans, system-ui' }}>
+        <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)', fontFamily: 'DM Sans, system-ui' }}>
           Carregando…
         </div>
       </div>
     );
   }
 
-  if (!isAuthenticated) return <OnboardingApp />;
+  if (!isAuthenticated) {
+    return (
+      <>
+        <ToastHost />
+        <OnboardingApp />
+      </>
+    );
+  }
 
-  return <MainApp user={user} />;
+  return (
+    <>
+      <ToastHost />
+      <MainApp user={user} />
+    </>
+  );
 }
 
 function MainApp({ user }) {
@@ -40,6 +54,7 @@ function MainApp({ user }) {
   const { data: transactions = [], isLoading: txLoading } = useTransactions();
   const { data: preferences, save: savePreferences } = usePreferences();
   const txActions = useTransactionActions();
+  const { create: createFinancing } = useFinancings();
 
   const [activeTab, setActiveTab] = React.useState('dashboard');
   const [showModal, setShowModal] = React.useState(false);
@@ -63,6 +78,10 @@ function MainApp({ user }) {
   React.useEffect(() => {
     if (preferences?.dark !== undefined) setDark(!!preferences.dark);
   }, [preferences?.dark]);
+
+  React.useEffect(() => {
+    applyThemeClass(dark);
+  }, [dark]);
 
   React.useEffect(() => {
     localStorage.setItem('fin_dark', dark ? '1' : '0');
@@ -108,18 +127,40 @@ function MainApp({ user }) {
   };
 
   const handleSaveFinancing = (fin) => {
-    const first = fin.schedule?.[0];
-    if (first) {
-      txActions.create({
-        type: 'expense',
-        desc: `${fin.desc} — parcela 1/${fin.nParcelas}`,
-        value: first.total,
-        entity: fin.entity,
-        date: first.date,
-        done: false,
-        cat: 'Financiamento',
-      });
-    }
+    const last = fin.schedule?.[fin.schedule.length - 1];
+    const endYear = last?.date ? Number(last.date.slice(0, 4)) : new Date().getFullYear() + 5;
+    const id = `${slugify(fin.desc)}-${Date.now()}`;
+    const entry = {
+      id,
+      bank: fin.desc,
+      balance: fin.principal,
+      installment: fin.pmtTotal,
+      endYear,
+      entity: fin.entity,
+      cet: fin.cetAnual,
+      originalBalance: fin.principal,
+      cat: 'Financiamento',
+      sistema: fin.sistema,
+      nParcelas: fin.nParcelas,
+      startDate: fin.startDate,
+      diaVenc: fin.diaVenc,
+      schedule: fin.schedule,
+    };
+
+    createFinancing.mutate(entry, {
+      onSuccess: () => {
+        const txs = (fin.schedule || []).map((row) => ({
+          type: 'expense',
+          desc: `${fin.desc} — parcela ${row.n}/${fin.nParcelas}`,
+          value: row.total,
+          entity: fin.entity,
+          date: row.date,
+          done: false,
+          cat: 'Financiamento',
+        }));
+        if (txs.length) txActions.bulkCreate(txs);
+      },
+    });
   };
 
   const handleRepasseUpdate = (nextRepasse) => {
@@ -144,16 +185,16 @@ function MainApp({ user }) {
     : null;
 
   const showFAB = !subScreen && (activeTab === 'dashboard' || activeTab === 'movimentos');
-  const { status: connectivityStatus } = useSyncStatus();
+  const { status: connectivityStatus, pending: syncPending } = useSyncStatus();
   const txList = transactions;
   const syncStatus = !connectivityStatus || connectivityStatus === 'synced'
-    ? (financeLoading || txLoading || txActions.isPending ? 'syncing' : 'synced')
+    ? (financeLoading || txLoading || txActions.isPending || syncPending > 0 ? 'syncing' : 'synced')
     : connectivityStatus;
 
   if (financeLoading && !finance) {
     return (
       <AppShell dark={dark}>
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8B90A0', fontFamily: 'DM Sans, system-ui' }}>
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontFamily: 'DM Sans, system-ui' }}>
           Carregando seus dados…
         </div>
       </AppShell>
@@ -165,7 +206,7 @@ function MainApp({ user }) {
       <AppShell dark={dark}>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: 24, fontFamily: 'DM Sans, system-ui' }}>
           <div style={{ color: '#DC2626', fontWeight: 700 }}>Não foi possível carregar os dados</div>
-          <button onClick={() => refetchFinance()} style={{ padding: '12px 20px', borderRadius: 12, border: 'none', background: '#2563EB', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>
+          <button onClick={() => refetchFinance()} style={{ padding: '12px 20px', borderRadius: 12, border: 'none', background: '#2563EB', color: 'var(--text-inverse)', fontWeight: 700, cursor: 'pointer' }}>
             Tentar novamente
           </button>
         </div>

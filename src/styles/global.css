@@ -15,17 +15,58 @@ html, body, #root {
   width: 100%;
 }
 
-body {
-  font-family: 'DM Sans', system-ui, sans-serif;
-  background: #F7F8FA;
-  -webkit-font-smoothing: antialiased;
-  overscroll-behavior: none;
-}
-
 :root {
+  --bg-app: #F7F8FA;
+  --bg-card: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-subtle: #F0F1F5;
+  --bg-input: #F7F8FA;
+  --bg-toggle: #ECEEF4;
+  --text-primary: #1A1F36;
+  --text-secondary: #4B5068;
+  --text-muted: #8B90A0;
+  --text-faint: #C4C7D4;
+  --border: #ECEEF4;
+  --divider: #F4F5F8;
+  --nav-bg: rgba(255, 255, 255, 0.96);
+  --shadow-card: 0 1px 3px rgba(26, 31, 54, 0.06), 0 4px 12px rgba(26, 31, 54, 0.04);
+  --chart-grid: #ECEEF4;
+  --chart-label: #8B90A0;
+  --text-inverse: #ffffff;
   --pad-top: calc(16px + env(safe-area-inset-top, 0px));
   --pad-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
   --pad-x: 18px;
+  color-scheme: light;
+}
+
+html.dark {
+  --bg-app: #0E1016;
+  --bg-card: #181C28;
+  --bg-elevated: #1E2333;
+  --bg-subtle: #222836;
+  --bg-input: #141820;
+  --bg-toggle: #252B3D;
+  --text-primary: #EEF1F8;
+  --text-secondary: #B8BECD;
+  --text-muted: #7A8299;
+  --text-faint: #50566A;
+  --border: #2A3044;
+  --divider: #222836;
+  --nav-bg: rgba(24, 28, 40, 0.96);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.25);
+  --chart-grid: #2A3044;
+  --chart-label: #7A8299;
+  --text-inverse: #ffffff;
+  color-scheme: dark;
+}
+
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+  transition: background 0.25s ease, color 0.25s ease;
 }
 
 #root {
@@ -33,7 +74,14 @@ body {
 }
 
 .app-shell {
-  /* safe area handled per-screen via --pad-top */
+  background: var(--bg-app);
+  color: var(--text-primary);
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+.screen-root {
+  background: var(--bg-app);
+  color: var(--text-primary);
 }
 
 * {
@@ -59,6 +107,6 @@ button:active {
 
 @media (display-mode: standalone) {
   body {
-    background: #F7F8FA;
+    background: var(--bg-app);
   }
 }
