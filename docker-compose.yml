@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: finapp
+      POSTGRES_PASSWORD: finapp
+      POSTGRES_DB: finapp
+    ports:
+      - "5432:5432"
+    volumes:
+      - finapp_pg:/var/lib/postgresql/data
+
+volumes:
+  finapp_pg:

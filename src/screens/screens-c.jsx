@@ -1,16 +1,17 @@
 import React from 'react';
-import { AppData } from '../data.js';
+import { useFinance } from '../hooks/useFinance.jsx';
 import { CashFlowStepChart } from '../components/charts.jsx';
 import { fmt } from '../data.js';
 // screens-c.jsx — Fluxo do Mês view
 
 function FluxoView({ entityFilter = 'Todos' }) {
-  const allEvents   = AppData.monthlyEvents;
+  const d = useFinance();
+  const allEvents   = d.monthlyEvents;
   const events      = entityFilter === 'Todos'
     ? allEvents
     : allEvents.filter(e => e.entity === entityFilter);
 
-  const startBalance = AppData.startBalances[entityFilter] || AppData.startBalances['Todos'];
+  const startBalance = d.startBalances[entityFilter] || d.startBalances['Todos'];
 
   // Build running balance per event (sorted by day)
   const sorted = [...events].sort((a, b) => a.day - b.day);

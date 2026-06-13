@@ -1,5 +1,6 @@
 import React from 'react';
-import { AppData, fmt } from '../data.js';
+import { fmt } from '../data.js';
+import { useFinance, useInvestments, slugify } from '../hooks/useFinance.jsx';
 import { AreaChart } from '../components/charts.jsx';
 import { Card } from './screens-a.jsx';
 // screens-gestao.jsx — Gestão: Financiamentos · Investimentos · Recorrências
@@ -164,7 +165,8 @@ function FinancingCard({ fin }) {
 
 /* ── FinanciamentosTab ──────────────────────────────── */
 function FinanciamentosTab() {
-  const list         = AppData.financingList || [AppData.financing];
+  const d = useFinance();
+  const list         = d.financingList || [d.financing];
   const totalDebt    = list.reduce((s, f) => s + f.balance,     0);
   const totalMonthly = list.reduce((s, f) => s + f.installment, 0);
 
@@ -187,7 +189,9 @@ function FinanciamentosTab() {
 }
 
 /* ── InvestimentosTab ───────────────────────────────── */
-function InvestimentosTab({ investments, setInvestments }) {
+function InvestimentosTab() {
+  const d = useFinance();
+  const { data: investments = d.investments, update } = useInvestments();
   const [editKey, setEditKey] = React.useState(null);
 
   const projValue = (value, retAnual, months) => {
@@ -198,7 +202,7 @@ function InvestimentosTab({ investments, setInvestments }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       {['pf', 'pj'].map(entity => {
-        const items = investments[entity] || AppData.investments[entity];
+        const items = investments[entity] || d.investments[entity];
         const total = items.reduce((s, inv) => s + inv.value, 0);
         const accentCol = entity === 'pf' ? '#2563EB' : '#7C3AED';
         const accentBg  = entity === 'pf' ? '#EFF6FF' : '#F5F3FF';
@@ -258,8 +262,7 @@ function InvestimentosTab({ investments, setInvestments }) {
                               <input defaultValue={inv[field]}
                                 onBlur={e => {
                                   const v = parseFloat(e.target.value) || 0;
-                                  const newItems = items.map((item, ii) => ii === i ? { ...item, [field]: v } : item);
-                                  setInvestments(prev => ({ ...prev, [entity]: newItems }));
+                                  update.mutate({ id: slugify(inv.name), patch: { [field]: v } });
                                 }}
                                 style={{ width: '100%', padding: '9px 12px', borderRadius: 10, border: '1.5px solid #ECEEF4', fontSize: 14, fontWeight: 600, color: '#1A1F36', background: '#fff', outline: 'none', fontFamily: 'DM Sans, system-ui', boxSizing: 'border-box' }}
                                 inputMode="decimal"/>
@@ -284,7 +287,8 @@ function InvestimentosTab({ investments, setInvestments }) {
 
 /* ── RecorrenciasTab ────────────────────────────────── */
 function RecorrenciasTab() {
-  const [events,  setEvents]  = React.useState(AppData.monthlyEvents);
+  const d = useFinance();
+  const [events,  setEvents]  = React.useState(d.monthlyEvents);
   const [editIdx, setEditIdx] = React.useState(null);
 
   const groups = [
@@ -366,7 +370,7 @@ function RecorrenciasTab() {
 }
 
 /* ── GestaoScreen ───────────────────────────────────── */
-function GestaoScreen({ investments, setInvestments, onBack }) {
+function GestaoScreen({ onBack }) {
   const [tab, setTab] = React.useState('financ');
 
   return (
@@ -400,7 +404,7 @@ function GestaoScreen({ investments, setInvestments, onBack }) {
         </div>
 
         {tab === 'financ' && <FinanciamentosTab />}
-        {tab === 'invest' && <InvestimentosTab investments={investments} setInvestments={setInvestments} />}
+        {tab === 'invest' && <InvestimentosTab />}
         {tab === 'recorr' && <RecorrenciasTab />}
 
       </div>

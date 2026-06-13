@@ -1,5 +1,6 @@
 import React from 'react';
-import { AppData, fmt } from '../data.js';
+import { fmt } from '../data.js';
+import { useFinance } from '../hooks/useFinance.jsx';
 import { AreaChart, DonutChart } from '../components/charts.jsx';
 import { Card } from './screens-a.jsx';
 // screens-tools.jsx — Simulador E-Se · Relatório · PGBL · Score
@@ -8,7 +9,7 @@ import { Card } from './screens-a.jsx';
    SIMULADOR "E SE?"
    ───────────────────────────────────────────────────── */
 function SimuladorESeScreen({ onBack }) {
-  const d            = AppData;
+  const d = useFinance();
   const patrimonio   = d.netWorth;        // R$ 1.250.000
   const sobraAtual   = d.monthResult;     // R$ 46.448/mês
   const meta         = 3000000;
@@ -151,7 +152,8 @@ function SimuladorESeScreen({ onBack }) {
    RELATÓRIO MENSAL
    ───────────────────────────────────────────────────── */
 function RelatorioMensalScreen({ onBack, transactions }) {
-  const MB = AppData.monthlyBudget;
+  const d = useFinance();
+  const MB = d.monthlyBudget;
   const [monthIdx, setMonthIdx] = React.useState(0);
 
   const M_LABELS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
@@ -162,7 +164,7 @@ function RelatorioMensalScreen({ onBack, transactions }) {
   const monthKey  = `20${yearShort}-${String(monthNum).padStart(2,'0')}`;
   const r         = MB[monthIdx];
 
-  const monthTx   = (transactions || AppData.transactions).filter(tx => tx.date.startsWith(monthKey));
+  const monthTx   = (transactions || []).filter(tx => tx.date.startsWith(monthKey));
   const confirmed = monthTx.filter(tx => tx.done);
   const actInc    = confirmed.filter(t => t.type === 'income').reduce((s,t) => s+t.value, 0);
   const actExp    = confirmed.filter(t => t.type === 'expense').reduce((s,t) => s+t.value, 0);
@@ -172,7 +174,7 @@ function RelatorioMensalScreen({ onBack, transactions }) {
   const planSaldo = r.pjSaldo + r.pfSaldo;
 
   const cats = {};
-  AppData.monthlyEvents.filter(e => e.type === 'expense').forEach(e => { cats[e.cat] = (cats[e.cat]||0) + e.value; });
+  d.monthlyEvents.filter(e => e.type === 'expense').forEach(e => { cats[e.cat] = (cats[e.cat]||0) + e.value; });
   const catList = Object.entries(cats).sort((a,b) => b[1]-a[1]);
 
   const kpis = [
@@ -430,11 +432,10 @@ function PGBLScreen({ onBack }) {
    SCORE DE SAÚDE FINANCEIRA
    ───────────────────────────────────────────────────── */
 function ScoreSaudeScreen({ onBack }) {
-  const d = AppData;
+  const d = useFinance();
 
-  // 1. Taxa de poupança (peso 25)
-  const totalRec   = AppData.monthlyEvents.filter(e => e.type === 'income').reduce((s,e) => s+e.value, 0);
-  const totalDesp  = AppData.monthlyEvents.filter(e => e.type === 'expense').reduce((s,e) => s+e.value, 0);
+  const totalRec   = d.monthlyEvents.filter(e => e.type === 'income').reduce((s,e) => s+e.value, 0);
+  const totalDesp  = d.monthlyEvents.filter(e => e.type === 'expense').reduce((s,e) => s+e.value, 0);
   const savePct    = totalRec > 0 ? (totalRec - totalDesp) / totalRec * 100 : 0;
   const saveScore  = Math.min(25, Math.round(savePct / 40 * 25)); // 40% = full score
 

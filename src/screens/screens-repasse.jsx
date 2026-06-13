@@ -3,11 +3,11 @@ import { fmt } from '../data.js';
 import { Card } from './screens-a.jsx';
 // screens-repasse.jsx — Controle de Repasse PJ → PF
 
-function RepasseScreen({ repasse, setRepasse, onBack, setTransactions }) {
+function RepasseScreen({ repasse, onUpdateRepasse, onUpdateMonth, onBack }) {
   const { months, day, monthlyLimit, annualLimit, year } = repasse;
   const [editIdx, setEditIdx] = React.useState(null);
 
-  const currentIdx = 5; // Junho 2026
+  const currentIdx = 5;
 
   const totalDone  = months.filter((_, i) => i < currentIdx).reduce((s, m) => s + m.amount, 0);
   const totalProj  = months.reduce((s, m) => s + m.amount, 0);
@@ -24,23 +24,11 @@ function RepasseScreen({ repasse, setRepasse, onBack, setTransactions }) {
 
   const step = (idx, delta) => {
     const next = Math.max(0, Math.min(monthlyLimit, months[idx].amount + delta));
-    const newMonths = months.map((m, i) => i === idx ? { ...m, amount: next } : m);
-    setRepasse({ ...repasse, months: newMonths });
+    onUpdateMonth?.(idx, { amount: next });
   };
 
   const updateField = (idx, field, value) => {
-    const newMonths = months.map((m, i) => i === idx ? { ...m, [field]: value } : m);
-    setRepasse({ ...repasse, months: newMonths });
-    // Auto-create transfer transaction when marking repasse as done
-    if (field === 'done' && value === true && setTransactions) {
-      const m = months[idx];
-      const mNum = String(idx + 1).padStart(2, '0');
-      const dateStr = `${year}-${mNum}-${String(day).padStart(2, '0')}`;
-      setTransactions(prev => [
-        { id: Date.now(), type: 'transfer', desc: `Repasse PJ → PF — ${m.m}/${year}`, value: m.amount, entity: 'PJ', date: dateStr, done: true, cat: 'Repasse' },
-        ...prev,
-      ]);
-    }
+    onUpdateMonth?.(idx, { [field]: value });
   };
 
   return (

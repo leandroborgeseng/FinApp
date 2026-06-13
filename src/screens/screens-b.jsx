@@ -1,30 +1,36 @@
 import React from 'react';
-import { AppData, fmt } from '../data.js';
+import { fmt } from '../data.js';
+import { useFinance, useInvestments, slugify } from '../hooks/useFinance.jsx';
 import { AreaChart, DonutChart } from '../components/charts.jsx';
 import { Card } from './screens-a.jsx';
 import { OrcadoVsRealizado } from './screens-analise.jsx';
 import { SyncBadge } from '../components/navigation.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
+import { InstallPrompt } from '../components/InstallPrompt.jsx';
+import { downloadExport, downloadBackup, pickAndImportFile } from '../api/backup.js';
+import { useQueryClient } from '@tanstack/react-query';
 // screens-b.jsx — Planejamento + Patrimônio + Mais
 
 /* ── Planejamento ───────────────────────────────────── */
 function PlanejamentoScreen({ transactions }) {
+  const d = useFinance();
   const [mode,         setMode]         = React.useState('realista');
   const [expandedIdx,  setExpandedIdx]  = React.useState(null);
   const [viewMode,     setViewMode]     = React.useState('plan');
 
   const multiplier = { realista: 1, conservador: 0.82, otimista: 1.18 }[mode];
 
-  const planMonths = AppData.planning.map(m => ({
+  const planMonths = d.planning.map(m => ({
     ...m,
     income:  Math.round(m.income  * multiplier),
     expense: Math.round(m.expense * multiplier),
   }));
 
   // Events breakdown for detail view
-  const pjIncomes  = AppData.monthlyEvents.filter(e => e.entity === 'PJ' && e.type === 'income');
-  const pjExpenses = AppData.monthlyEvents.filter(e => e.entity === 'PJ' && e.type === 'expense');
-  const pfIncomes  = AppData.monthlyEvents.filter(e => e.entity === 'PF' && e.type === 'income');
-  const pfExpenses = AppData.monthlyEvents.filter(e => e.entity === 'PF' && e.type === 'expense');
+  const pjIncomes  = d.monthlyEvents.filter(e => e.entity === 'PJ' && e.type === 'income');
+  const pjExpenses = d.monthlyEvents.filter(e => e.entity === 'PJ' && e.type === 'expense');
+  const pfIncomes  = d.monthlyEvents.filter(e => e.entity === 'PF' && e.type === 'income');
+  const pfExpenses = d.monthlyEvents.filter(e => e.entity === 'PF' && e.type === 'expense');
 
   return (
     <div style={{ height: '100%', overflowY: 'auto', background: '#F7F8FA', fontFamily: 'DM Sans, system-ui' }}>
@@ -64,7 +70,7 @@ function PlanejamentoScreen({ transactions }) {
             Projeção 36 meses — Sobras mensais
           </div>
           <AreaChart
-            data={AppData.planningChart36.map(d => ({ ...d, value: d.value * multiplier }))}
+            data={d.planningChart36.map(d2 => ({ ...d2, value: d2.value * multiplier }))}
             width={326} height={110} color="#16A34A"
           />
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
@@ -172,10 +178,10 @@ function PlanejamentoScreen({ transactions }) {
 
 /* ── Patrimônio ─────────────────────────────────────── */
 function PatrimonioScreen() {
+  const d = useFinance();
   const [subTab,  setSubTab]  = React.useState('overview');
   const [expInv,  setExpInv]  = React.useState(null);
   const [expGoal, setExpGoal] = React.useState(null);
-  const d   = AppData;
   const rmf = (ret) => Math.pow(1 + ret/100, 1/12) - 1;
   const proj = (inv, n) => { const rm = rmf(inv.ret); return Math.round(inv.value * Math.pow(1+rm,n) + inv.monthly*(Math.pow(1+rm,n)-1)/rm); };
   const rg  = Math.pow(1 + 12.68/100, 1/12) - 1;
@@ -382,18 +388,54 @@ function PatrimonioScreen() {
   );
 }
 
-/* ── Mais      </div>
-    </div>
-  );
-}
-
 /* ── Mais ───────────────────────────────────────────── */
-function MaisScreen({ dark, onToggleDark, repasse, onShowRepasse, onShowGestao, onShowIndependencia, onShowTributario, onShowComparativo, onShowCalculadora, onShowSimulador, onShowRelatorio, onShowPGBL, onShowScore, onShowPlanilha }) {
+function MaisScreen({ user, syncStatus, dark, onToggleDark, repasse, onShowRepasse, onShowGestao, onShowIndependencia, onShowTributario, onShowComparativo, onShowCalculadora, onShowSimulador, onShowRelatorio, onShowPGBL, onShowScore, onShowPlanilha }) {
+  const { logout } = useAuth();
+  const qc = useQueryClient();
   const currentIdx = 5; // June
   const repasseMonth = repasse?.months?.[currentIdx];
   const repasseDesc  = repasseMonth
     ? `${fmt(repasseMonth.amount)}/mês · ${repasseMonth.done ? 'Realizado' : 'Pendente'}`
     : 'Controle de retiradas PJ→PF';
+
+  const lastBackup = localStorage.getItem('fin_last_backup');
+  const backupDesc = lastBackup
+    ? `Último: ${new Date(lastBackup).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}`
+    : 'Nenhum backup neste dispositivo';
+
+  const syncDesc = syncStatus === 'offline'
+    ? 'Sem conexão · dados em cache'
+    : syncStatus === 'syncing'
+      ? 'Sincronizando alterações…'
+      : 'Sincronizado agora';
+
+  const refreshAll = () => {
+    qc.invalidateQueries();
+  };
+
+  const handleImport = () => {
+    pickAndImportFile(() => {
+      refreshAll();
+      alert('Dados importados com sucesso.');
+    });
+  };
+
+  const handleExport = async () => {
+    try {
+      await downloadExport();
+    } catch (e) {
+      alert(e.message || 'Falha ao exportar');
+    }
+  };
+
+  const handleBackup = async () => {
+    try {
+      await downloadBackup();
+      refreshAll();
+    } catch (e) {
+      alert(e.message || 'Falha ao criar backup');
+    }
+  };
 
   const sections = [
     {
@@ -422,10 +464,10 @@ function MaisScreen({ dark, onToggleDark, repasse, onShowRepasse, onShowGestao, 
     {
       title: 'Dados',
       items: [
-        { icon: '↑', label: 'Importar planilha', desc: 'Excel, CSV, OFX'      },
-        { icon: '↓', label: 'Exportar Excel',    desc: 'Histórico completo'   },
-        { icon: '⊙', label: 'Backup',            desc: 'Último: hoje, 09:14'  },
-        { icon: '⇄', label: 'Sincronização',     desc: 'Sincronizado agora'   },
+        { icon: '↑', label: 'Importar dados', desc: 'JSON exportado do FinApp', action: handleImport },
+        { icon: '↓', label: 'Exportar JSON', desc: 'Histórico e configurações', action: handleExport },
+        { icon: '⊙', label: 'Backup', desc: backupDesc, action: handleBackup },
+        { icon: '⇄', label: 'Sincronização', desc: syncDesc },
       ],
     },
     {
@@ -437,12 +479,18 @@ function MaisScreen({ dark, onToggleDark, repasse, onShowRepasse, onShowGestao, 
     },
   ];
 
+  const displayName = user?.name || 'Minha Conta';
+  const displayEmail = user?.email || localStorage.getItem('fin_user_email') || '';
+  const initial = (displayName[0] || 'U').toUpperCase();
+
   return (
     <div style={{ height: '100%', overflowY: 'auto', background: '#F7F8FA', fontFamily: 'DM Sans, system-ui' }}>
-      <div style={{ padding: '68px 18px 100px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{ padding: 'calc(16px + env(safe-area-inset-top, 0px)) 18px calc(100px + env(safe-area-inset-bottom, 0px))', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
         {/* Header */}
         <div style={{ fontSize: 20, fontWeight: 700, color: '#1A1F36' }}>Mais</div>
+
+        <InstallPrompt />
 
         {/* Profile card */}
         <Card style={{ padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -451,13 +499,23 @@ function MaisScreen({ dark, onToggleDark, repasse, onShowRepasse, onShowGestao, 
             background: 'linear-gradient(135deg, #2563EB, #7C3AED)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 20, fontWeight: 700, color: '#fff',
-          }}>A</div>
+          }}>{initial}</div>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: '#1A1F36' }}>Minha Conta</div>
-            <div style={{ fontSize: 12, color: '#8B90A0', marginTop: 2 }}>PF + PJ · Plano Completo</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#1A1F36' }}>{displayName}</div>
+            <div style={{ fontSize: 12, color: '#8B90A0', marginTop: 2 }}>{displayEmail} · {user?.plan === 'pro' ? 'Plano Completo' : 'Plano Básico'}</div>
           </div>
           <div style={{ marginLeft: 'auto' }}>
-            <SyncBadge status="synced"/>
+            <SyncBadge status={syncStatus || 'synced'}/>
+          </div>
+        </Card>
+
+        <Card style={{ padding: '4px 6px' }}>
+          <div onClick={() => logout()} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 12px', cursor: 'pointer' }}>
+            <div style={{ width: 34, height: 34, borderRadius: 9, background: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, color: '#DC2626' }}>⎋</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#DC2626' }}>Sair da conta</div>
+              <div style={{ fontSize: 11, color: '#8B90A0', marginTop: 1 }}>Encerrar sessão neste dispositivo</div>
+            </div>
           </div>
         </Card>
 
@@ -493,7 +551,7 @@ function MaisScreen({ dark, onToggleDark, repasse, onShowRepasse, onShowGestao, 
 
         {/* Version */}
         <div style={{ textAlign: 'center', fontSize: 11, color: '#C4C7D4', paddingTop: 8 }}>
-          v1.0.0 · Junho 2026
+          v1.1.0 · PWA
         </div>
 
       </div>
@@ -503,7 +561,8 @@ function MaisScreen({ dark, onToggleDark, repasse, onShowRepasse, onShowGestao, 
 
 /* ── Financiamentos content (inside Patrimônio) ───── */
 function FinanciamentosContent() {
-  const list = AppData.financingList;
+  const d = useFinance();
+  const list = d.financingList;
   const [expId,  setExpId]  = React.useState(null);
   const [extraPmt, setExtraPmt] = React.useState({});
 

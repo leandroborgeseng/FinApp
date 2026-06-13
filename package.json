@@ -7,22 +7,32 @@
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:client": "vite",
     "dev:server": "node server/index.js",
-    "build": "vite build",
+    "build": "node scripts/generate-icons.mjs && vite build",
     "start": "node server/index.js",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "db:migrate": "node server/db/migrate.js"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
+    "@fontsource/dm-sans": "^5.2.5",
+    "@tanstack/react-query": "^5.62.8",
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
+    "dexie": "^4.4.3",
+    "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.13.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
     "concurrently": "^9.1.2",
-    "vite": "^6.0.7"
+    "sharp": "^0.33.5",
+    "vite": "^6.0.7",
+    "vite-plugin-pwa": "^0.21.1"
   }
 }

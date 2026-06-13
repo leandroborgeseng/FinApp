@@ -1,7 +1,9 @@
 import React from 'react';
-import { AppData, fmt, fmtDate } from '../data.js';
+import { fmt, fmtDate } from '../data.js';
+import { useFinance } from '../hooks/useFinance.jsx';
 import { SparkLine, BarChart, AreaChart, DonutChart } from '../components/charts.jsx';
 import { FluxoView } from './screens-c.jsx';
+import { SyncBadge } from '../components/navigation.jsx';
 // screens-a.jsx — Dashboard + Movimentos
 
 /* ── shared tiny helpers ───────────────────────────── */
@@ -48,38 +50,35 @@ function useCountUp(target, duration = 1600) {
 }
 
 /* ── Dashboard ─────────────────────────────────────── */
-function DashboardScreen({ onNewEntry, repasse, onShowRepasse, transactions, setTransactions, onNavToMovimentos }) {
-  const d = AppData;
+function DashboardScreen({ onNewEntry, repasse, onShowRepasse, transactions, txActions, onNavToMovimentos, syncStatus }) {
+  const d = useFinance();
   const animNetWorth = useCountUp(d.netWorth);
   const todayDay     = 11;
   const currentMonthIdx = 5; // June 2026
 
-  // Notification confirm state
   const [confirmedKeys, setConfirmedKeys] = React.useState(new Set());
   const confirmEvent = (e) => {
     const dateStr = `2026-06-${String(e.day).padStart(2, '0')}`;
-    if (setTransactions) {
-      setTransactions(prev => [
-        { id: Date.now(), type: e.type, desc: e.desc, value: e.value, entity: e.entity, date: dateStr, done: true, cat: e.cat },
-        ...prev,
-      ]);
+    if (txActions) {
+      txActions.create({
+        type: e.type, desc: e.desc, value: e.value, entity: e.entity,
+        date: dateStr, done: true, cat: e.cat,
+      });
     }
     setConfirmedKeys(prev => new Set([...prev, e.desc + e.day]));
   };
 
-  // Notifications — events due in next 3 days (unconfirmed)
-  const notifEvents = AppData.monthlyEvents
+  const notifEvents = d.monthlyEvents
     .filter(e => e.day > todayDay && e.day <= todayDay + 3 && !confirmedKeys.has(e.desc + e.day))
     .sort((a, b) => a.day - b.day);
 
-  // Upcoming events for the list
-  const upcoming = AppData.monthlyEvents
+  const upcoming = d.monthlyEvents
     .filter(e => e.day >= todayDay)
     .sort((a, b) => a.day - b.day)
     .slice(0, 4);
 
-  const cdbNow   = AppData.cdbProjection[0];
-  const cdbFinal = AppData.cdbProjection[AppData.cdbProjection.length - 1];
+  const cdbNow   = d.cdbProjection[0];
+  const cdbFinal = d.cdbProjection[d.cdbProjection.length - 1];
 
   // Repasse stats (new structure)
   const rMonths  = repasse?.months || [];
@@ -109,7 +108,7 @@ function DashboardScreen({ onNewEntry, repasse, onShowRepasse, transactions, set
             <div style={{ fontSize: 13, color: '#8B90A0', fontWeight: 400 }}>Junho 2026</div>
             <div style={{ fontSize: 20, fontWeight: 700, color: '#1A1F36', lineHeight: 1.2 }}>Visão geral</div>
           </div>
-          <SyncBadge status="synced"/>
+          <SyncBadge status={syncStatus || 'synced'}/>
         </div>
 
         {/* Notification banners — events in next 3 days */}
@@ -158,7 +157,7 @@ function DashboardScreen({ onNewEntry, repasse, onShowRepasse, transactions, set
           boxShadow: '0 6px 24px rgba(26,31,54,0.22)',
         }}>
           <div style={{ position: 'absolute', right: -10, bottom: -8, opacity: 0.18 }}>
-            <SparkLine data={AppData.netWorthHistory} width={180} height={72} color="#60A5FA"/>
+            <SparkLine data={d.netWorthHistory} width={180} height={72} color="#60A5FA"/>
           </div>
           <div style={{ position: 'relative' }}>
             <div style={{ fontSize: 11, color: '#94A3CC', fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 6 }}>
@@ -238,7 +237,7 @@ function DashboardScreen({ onNewEntry, repasse, onShowRepasse, transactions, set
             </div>
           </div>
           <AreaChart
-            data={AppData.cdbProjection.map(c => ({ label: c.label.slice(0, 3), value: c.value }))}
+            data={d.cdbProjection.map(c => ({ label: c.label.slice(0, 3), value: c.value }))}
             width={326} height={100} color="#7C3AED"
           />
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10, paddingTop: 10, borderTop: '1px solid #F0F1F5' }}>
@@ -253,8 +252,8 @@ function DashboardScreen({ onNewEntry, repasse, onShowRepasse, transactions, set
 
         {/* Taxa de poupança + composição do mês */}
         {(() => {
-          const totalRec = AppData.monthlyEvents.filter(e => e.type === 'income').reduce((s,e) => s+e.value, 0);
-          const totalDesp = AppData.monthlyEvents.filter(e => e.type === 'expense').reduce((s,e) => s+e.value, 0);
+          const totalRec = d.monthlyEvents.filter(e => e.type === 'income').reduce((s,e) => s+e.value, 0);
+          const totalDesp = d.monthlyEvents.filter(e => e.type === 'expense').reduce((s,e) => s+e.value, 0);
           const sobra = totalRec - totalDesp;
           const savePct = totalRec > 0 ? Math.round(sobra / totalRec * 100) : 0;
           const goalPct = 30;
@@ -319,7 +318,7 @@ function DashboardScreen({ onNewEntry, repasse, onShowRepasse, transactions, set
               <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><span style={{ width: 14, height: 2, borderTop: '2px dashed #2563EB', display: 'inline-block' }}/>Sobra</span>
             </div>
           </div>
-          <BarChart data={AppData.cashFlow} width={326} height={120}/>
+          <BarChart data={d.cashFlow} width={326} height={120}/>
         </Card>
 
         {/* Próximos lançamentos */}
@@ -372,13 +371,13 @@ function DashboardScreen({ onNewEntry, repasse, onShowRepasse, transactions, set
 
 /* ── Fluxo Diário (sub-view) ───────────────────────── */
 function FluxoDiarioView({ entityFilter, monthKey, monthIdx, transactions }) {
-  const MB      = AppData.monthlyBudget[monthIdx] || AppData.monthlyBudget[0];
-  const TODAY   = 11; // June 11 2026
+  const d = useFinance();
+  const MB      = d.monthlyBudget[monthIdx] || d.monthlyBudget[0];
+  const TODAY   = 11;
   const isCurrentMonth = monthIdx === 0;
 
-  // Opening balance: combined PF + PJ available (or filtered)
-  const openingPF = AppData.pfAvailable;
-  const openingPJ = AppData.pjAvailable;
+  const openingPF = d.pfAvailable;
+  const openingPJ = d.pjAvailable;
   const opening   = entityFilter === 'PF' ? openingPF
                   : entityFilter === 'PJ' ? openingPJ
                   : openingPF + openingPJ;
@@ -393,12 +392,12 @@ function FluxoDiarioView({ entityFilter, monthKey, monthIdx, transactions }) {
   const WEEKDAYS  = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 
   // Merge real transactions + monthly events as projections
-  const realTx = (transactions || AppData.transactions)
+  const realTx = (transactions || [])
     .filter(t => t.date.startsWith(monthKey))
     .filter(t => entityFilter === 'Todos' || t.entity === entityFilter);
 
   // Build events from monthlyEvents (projected)
-  const projectedEvents = AppData.monthlyEvents
+  const projectedEvents = d.monthlyEvents
     .filter(e => entityFilter === 'Todos' || e.entity === entityFilter)
     .map(e => ({
       id:     'proj-' + e.desc + e.day,
@@ -558,7 +557,8 @@ function FluxoDiarioView({ entityFilter, monthKey, monthIdx, transactions }) {
 }
 
 /* ── Movimentos ─────────────────────────────────────── */
-function MovimentosScreen({ transactions, setTransactions, defaultFilter }) {
+function MovimentosScreen({ transactions, txActions, defaultFilter }) {
+  const d = useFinance();
   const [filter,   setFilter]   = React.useState(defaultFilter || 'Todos');
   const [expanded, setExpanded] = React.useState(null);
   const [editing,  setEditing]  = React.useState({}); // {id: {value, desc, cat}}
@@ -568,7 +568,7 @@ function MovimentosScreen({ transactions, setTransactions, defaultFilter }) {
   // Sync if defaultFilter changes (e.g. nav from dashboard)
   React.useEffect(() => { if (defaultFilter) setFilter(defaultFilter); }, [defaultFilter]); // 0 = Jun/26
 
-  const MB_ALL    = AppData.monthlyBudget;
+  const MB_ALL    = d.monthlyBudget;
   const M_LABELS  = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const monthRaw  = MB_ALL[monthIdx]?.m || 'Jun/26';          // e.g. 'Jul/27'
   const monthName = monthRaw.slice(0, 3);
@@ -577,7 +577,7 @@ function MovimentosScreen({ transactions, setTransactions, defaultFilter }) {
   const monthKey  = `20${yearShort}-${String(monthNum).padStart(2, '0')}`; // '2026-06'
   const monthLabel = monthRaw;                                 // shown in header
 
-  const allTx  = (transactions || AppData.transactions).filter(tx => tx.date.startsWith(monthKey));
+  const allTx  = (transactions || []).filter(tx => tx.date.startsWith(monthKey));
   const filtered = filter === 'Todos' ? allTx : allTx.filter(t => t.entity === filter);
 
   const totalIncome  = filtered.filter(t => t.type === 'income').reduce((s, t) => s + t.value, 0);
@@ -585,17 +585,18 @@ function MovimentosScreen({ transactions, setTransactions, defaultFilter }) {
   const balance = totalIncome - totalExpense;
 
   const confirmTx = (id) => {
-    if (!setTransactions) return;
-    setTransactions(prev => prev.map(t => t.id === id ? { ...t, done: !t.done } : t));
+    if (!txActions) return;
+    const tx = filtered.find(t => t.id === id);
+    if (tx) txActions.toggleDone(id, !tx.done);
   };
   const deleteTx = (id) => {
-    if (!setTransactions) return;
-    setTransactions(prev => prev.filter(t => t.id !== id));
+    if (!txActions) return;
+    txActions.remove(id);
     setExpanded(null);
   };
   const saveEdit = (id) => {
-    if (!setTransactions || !editing[id]) return;
-    setTransactions(prev => prev.map(t => t.id === id ? { ...t, ...editing[id] } : t));
+    if (!txActions || !editing[id]) return;
+    txActions.update(id, editing[id]);
     setEditing(prev => { const n = {...prev}; delete n[id]; return n; });
     setExpanded(null);
   };
@@ -670,7 +671,7 @@ function MovimentosScreen({ transactions, setTransactions, defaultFilter }) {
         {/* Alertas de categoria */}
         {view === 'lista' && (() => {
           const budgets = {};
-          AppData.monthlyEvents.filter(e => e.type === 'expense').forEach(e => {
+          d.monthlyEvents.filter(e => e.type === 'expense').forEach(e => {
             budgets[e.cat] = (budgets[e.cat] || 0) + e.value;
           });
           const spent = {};

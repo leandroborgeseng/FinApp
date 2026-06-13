@@ -1,5 +1,6 @@
 import React from 'react';
-import { AppData, fmt } from '../data.js';
+import { fmt } from '../data.js';
+import { useFinance } from '../hooks/useFinance.jsx';
 import { AreaChart } from '../components/charts.jsx';
 import { Card } from './screens-a.jsx';
 // screens-analise.jsx — Orçado vs. Realizado · Independência · Tributário
@@ -8,11 +9,11 @@ import { Card } from './screens-a.jsx';
    ORÇADO VS. REALIZADO
    ───────────────────────────────────────────────────── */
 function OrcadoVsRealizado({ transactions }) {
+  const d = useFinance();
   const todayMonth = '2026-06';
 
-  // Planned from monthlyEvents grouped by category
   const planned = { income: {}, expense: {} };
-  AppData.monthlyEvents.forEach(e => {
+  d.monthlyEvents.forEach(e => {
     const side = e.type === 'income' ? 'income' : 'expense';
     planned[side][e.cat] = (planned[side][e.cat] || 0) + e.value;
   });
@@ -129,7 +130,7 @@ function OrcadoVsRealizado({ transactions }) {
    INDEPENDÊNCIA FINANCEIRA
    ───────────────────────────────────────────────────── */
 function IndependenciaScreen({ onBack }) {
-  const d = AppData;
+  const d = useFinance();
   const goal    = d.goals.find(g => g.name.includes('Independência')) || { current: 1250000, target: 3000000, year: 2029 };
   const current = goal.current;
   const target  = goal.target;
@@ -262,7 +263,8 @@ function IndependenciaScreen({ onBack }) {
    ANÁLISE TRIBUTÁRIA PJ — SIMPLES NACIONAL
    ───────────────────────────────────────────────────── */
 function TributarioScreen({ onBack }) {
-  const MB = AppData.monthlyBudget;
+  const d = useFinance();
+  const MB = d.monthlyBudget;
 
   // Annual projected PJ revenue (next 12 months)
   const next12     = MB.slice(0, 12);

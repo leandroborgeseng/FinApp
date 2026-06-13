@@ -1,8 +1,9 @@
 import React from 'react';
-// onboarding.jsx — Login + Onboarding flow
+import { useAuth } from '../context/AuthContext.jsx';
 
-function OnboardingApp({ onLogin }) {
-  const [step, setStep]   = React.useState('slides'); // 'slides' | 'login'
+function OnboardingApp() {
+  const { login } = useAuth();
+  const [step, setStep]   = React.useState('slides');
   const [slide, setSlide] = React.useState(0);
   const [email, setEmail] = React.useState('');
   const [senha, setSenha] = React.useState('');
@@ -54,36 +55,35 @@ function OnboardingApp({ onLogin }) {
     },
   ];
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email) { setErro('Informe seu e-mail'); return; }
     if (!senha)  { setErro('Informe sua senha'); return; }
     setErro('');
     setLoading(true);
-    setTimeout(() => {
+    try {
+      await login(email, senha);
+    } catch (e) {
+      setErro(e.message || 'Falha no login');
+    } finally {
       setLoading(false);
-      localStorage.setItem('fin_logged_in', '1');
-      localStorage.setItem('fin_user_email', email);
-      onLogin();
-    }, 1200);
+    }
   };
 
   const accentColor = slides[slide]?.color || '#2563EB';
 
   return (
     <div style={{
-      width: 390, minHeight: 844,
+      width: '100%', minHeight: '100dvh', maxWidth: 480, margin: '0 auto',
       background: '#F7F8FA',
-      borderRadius: 54,
       overflow: 'hidden',
       position: 'relative',
       fontFamily: 'DM Sans, system-ui',
       display: 'flex',
       flexDirection: 'column',
-      boxShadow: '0 32px 80px rgba(0,0,0,0.22)',
     }}>
 
       {/* Status bar */}
-      <div style={{ height: 50, background: '#1A1F36', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', padding: '0 28px 10px', flexShrink: 0 }}>
+      <div style={{ height: 'calc(50px + env(safe-area-inset-top, 0px))', paddingTop: 'env(safe-area-inset-top, 0px)', background: '#1A1F36', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', padding: '0 28px 10px', flexShrink: 0 }}>
         <span style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>9:41</span>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           <svg width="16" height="12" viewBox="0 0 16 12" fill="white" opacity="0.9"><rect x="0" y="4" width="3" height="8" rx="1"/><rect x="4.5" y="2" width="3" height="10" rx="1"/><rect x="9" y="0" width="3" height="12" rx="1"/></svg>
@@ -252,7 +252,7 @@ function OnboardingApp({ onLogin }) {
           <div style={{ padding: '0 28px 36px' }}>
             <div style={{ background: '#EFF6FF', borderRadius: 12, padding: '12px 14px', border: '1px solid #DBEAFE' }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#2563EB', marginBottom: 2 }}>Modo demonstração</div>
-              <div style={{ fontSize: 11, color: '#3B82F6' }}>Use qualquer e-mail + senha para entrar e explorar o protótipo completo.</div>
+              <div style={{ fontSize: 11, color: '#3B82F6' }}>Demo: <strong>demo@finapp.com</strong> / <strong>finapp2026</strong></div>
             </div>
           </div>
         </div>

@@ -4,5 +4,10 @@ buildCommand = "npm install --include=dev && npm run build"
 
 [deploy]
 startCommand = "npm start"
-healthcheckPath = "/"
+healthcheckPath = "/health"
 restartPolicyType = "ON_FAILURE"
+
+# Variáveis obrigatórias no serviço FinApp (ver DEPLOY.md):
+#   NODE_ENV=production
+#   JWT_SECRET=<openssl rand -hex 32>
+#   DATABASE_URL=${{Postgres.DATABASE_URL}}

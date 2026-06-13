@@ -2,39 +2,16 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#1A1F36" />
+    <meta name="description" content="Gestão financeira pessoal integrada com PJ" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="FinApp" />
+    <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <title>FinApp — Gestor Financeiro</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <style>
-      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-      body {
-        min-height: 100vh;
-        background: #E8EAF0;
-        display: flex;
-        align-items: flex-start;
-        justify-content: center;
-        padding: 40px 20px 60px;
-        font-family: 'DM Sans', system-ui, sans-serif;
-      }
-      body::before {
-        content: '';
-        position: fixed;
-        inset: 0;
-        background-image: radial-gradient(circle, #C8CAD4 1px, transparent 1px);
-        background-size: 24px 24px;
-        opacity: 0.45;
-        pointer-events: none;
-        z-index: 0;
-      }
-      #root { position: relative; z-index: 1; }
-      * { -webkit-overflow-scrolling: touch; }
-      ::-webkit-scrollbar { display: none; }
-      input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.5; cursor: pointer; }
-      select { cursor: pointer; }
-      button:active { opacity: 0.85; }
-    </style>
   </head>
   <body>
     <div id="root"></div>

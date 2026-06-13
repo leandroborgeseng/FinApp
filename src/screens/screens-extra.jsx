@@ -1,12 +1,14 @@
 import React from 'react';
-import { AppData, fmt } from '../data.js';
+import { fmt } from '../data.js';
+import { useFinance } from '../hooks/useFinance.jsx';
 import { AreaChart } from '../components/charts.jsx';
 import { Card } from './screens-a.jsx';
 // screens-extra.jsx — Comparativo de Meses · Calculadora de Rentabilidade
 
 /* ── Comparativo de Meses ───────────────────────────── */
 function ComparativoMesesScreen({ onBack }) {
-  const MB = AppData.monthlyBudget;
+  const d = useFinance();
+  const MB = d.monthlyBudget;
   const [idxA, setIdxA] = React.useState(0);
   const [idxB, setIdxB] = React.useState(1);
 

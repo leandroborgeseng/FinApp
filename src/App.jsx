@@ -1,6 +1,10 @@
 import React from 'react';
 import { AppData } from './data.js';
-import { IOSDevice } from './components/ios-frame.jsx';
+import { useAuth } from './context/AuthContext.jsx';
+import { FinanceProvider, useBootstrap, useRepasse, usePreferences } from './hooks/useFinance.jsx';
+import { useTransactions, useTransactionActions } from './hooks/useTransactionActions.js';
+import { useSyncStatus } from './hooks/useSyncStatus.jsx';
+import { AppShell } from './components/AppShell.jsx';
 import { OnboardingApp } from './components/onboarding.jsx';
 import { BottomNav, FAB } from './components/navigation.jsx';
 import { NovoLancamentoModal } from './components/modal.jsx';
@@ -14,21 +18,30 @@ import { SimuladorESeScreen, RelatorioMensalScreen, PGBLScreen, ScoreSaudeScreen
 import { RecorrenciasSheet } from './screens/screens-sheet.jsx';
 
 export default function App() {
-  const alreadyLogged = localStorage.getItem('fin_logged_in') === '1';
-  const [loggedIn, setLoggedIn] = React.useState(alreadyLogged);
+  const { user, loading, isAuthenticated } = useAuth();
 
-  if (!loggedIn) {
+  if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', minHeight: '100vh', padding: '40px 20px 60px' }}>
-        <OnboardingApp onLogin={() => setLoggedIn(true)} />
+      <div className="app-loading">
+        <div style={{ textAlign: 'center', padding: 40, color: '#8B90A0', fontFamily: 'DM Sans, system-ui' }}>
+          Carregando…
+        </div>
       </div>
     );
   }
 
-  return <MainApp />;
+  if (!isAuthenticated) return <OnboardingApp />;
+
+  return <MainApp user={user} />;
 }
 
-function MainApp() {
+function MainApp({ user }) {
+  const { data: finance = AppData, isLoading: financeLoading } = useBootstrap();
+  const { data: repasse, updateMonth, updateAll } = useRepasse();
+  const { data: transactions = [], isLoading: txLoading } = useTransactions();
+  const { data: preferences, save: savePreferences } = usePreferences();
+  const txActions = useTransactionActions();
+
   const [activeTab, setActiveTab] = React.useState('dashboard');
   const [showModal, setShowModal] = React.useState(false);
   const [showRepasse, setShowRepasse] = React.useState(false);
@@ -42,31 +55,27 @@ function MainApp() {
   const [showPGBL, setShowPGBL] = React.useState(false);
   const [showScore, setShowScore] = React.useState(false);
   const [showPlanilha, setShowPlanilha] = React.useState(false);
-  const [transactions, setTransactions] = React.useState(AppData.transactions);
-  const [dark, setDark] = React.useState(false);
-  const [investments, setInvestments] = React.useState(AppData.investments);
-  const [repasse, setRepasse] = React.useState({
-    day: 5,
-    monthlyLimit: 50000,
-    annualLimit: 600000,
-    year: 2026,
-    months: [
-      { m: 'Jan', amount: 28000, done: true },
-      { m: 'Fev', amount: 28000, done: true },
-      { m: 'Mar', amount: 28000, done: true },
-      { m: 'Abr', amount: 32000, done: true },
-      { m: 'Mai', amount: 32000, done: true },
-      { m: 'Jun', amount: 34000, done: false },
-      { m: 'Jul', amount: 40000, done: false },
-      { m: 'Ago', amount: 40000, done: false },
-      { m: 'Set', amount: 25000, done: false },
-      { m: 'Out', amount: 25000, done: false },
-      { m: 'Nov', amount: 25000, done: false },
-      { m: 'Dez', amount: 25000, done: false },
-    ],
+  const [dark, setDark] = React.useState(() => {
+    if (localStorage.getItem('fin_dark') === '1') return true;
+    return false;
   });
-
   const [movimentosFilter, setMovimentosFilter] = React.useState('Todos');
+
+  React.useEffect(() => {
+    if (preferences?.dark !== undefined) setDark(!!preferences.dark);
+  }, [preferences?.dark]);
+
+  React.useEffect(() => {
+    localStorage.setItem('fin_dark', dark ? '1' : '0');
+  }, [dark]);
+
+  const handleToggleDark = () => {
+    const next = !dark;
+    setDark(next);
+    savePreferences.mutate({ dark: next });
+  };
+
+  const repasseState = repasse || finance.repasse;
 
   const closeAllSub = () => {
     setShowRepasse(false);
@@ -88,29 +97,38 @@ function MainApp() {
   };
 
   const handleSave = (tx) => {
-    setTransactions((prev) => [
-      { ...tx, id: Date.now(), done: tx.status === 'realizado' },
-      ...prev,
-    ]);
+    txActions.create({
+      desc: tx.desc,
+      value: Number(tx.value),
+      type: tx.type || 'expense',
+      entity: tx.entity || 'PF',
+      date: tx.date || new Date().toISOString().slice(0, 10),
+      done: tx.status === 'realizado',
+      cat: tx.cat || 'Outros',
+    });
   };
 
   const handleSaveFinancing = (fin) => {
-    const first = fin.schedule[0];
+    const first = fin.schedule?.[0];
     if (first) {
-      setTransactions((prev) => [
-        {
-          id: Date.now(),
-          type: 'expense',
-          desc: `${fin.desc} — parcela 1/${fin.nParcelas}`,
-          value: first.total,
-          entity: fin.entity,
-          date: first.date,
-          done: false,
-          cat: 'Financiamento',
-        },
-        ...prev,
-      ]);
+      txActions.create({
+        type: 'expense',
+        desc: `${fin.desc} — parcela 1/${fin.nParcelas}`,
+        value: first.total,
+        entity: fin.entity,
+        date: first.date,
+        done: false,
+        cat: 'Financiamento',
+      });
     }
+  };
+
+  const handleRepasseUpdate = (nextRepasse) => {
+    updateAll.mutate(nextRepasse);
+  };
+
+  const handleRepasseMonth = (idx, patch) => {
+    updateMonth.mutate({ idx, patch });
   };
 
   const subScreen = showRepasse ? 'repasse'
@@ -127,25 +145,25 @@ function MainApp() {
     : null;
 
   const showFAB = !subScreen && (activeTab === 'dashboard' || activeTab === 'movimentos');
+  const { status: connectivityStatus } = useSyncStatus();
+  const txList = txLoading ? (finance.transactions || AppData.transactions) : transactions;
+  const syncStatus = !connectivityStatus || connectivityStatus === 'synced'
+    ? (financeLoading || txLoading ? 'syncing' : 'synced')
+    : connectivityStatus;
 
   return (
-    <IOSDevice>
-      <div style={{
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        background: '#F7F8FA',
-        position: 'relative',
-        overflow: 'hidden',
-        fontFamily: "'DM Sans', system-ui, sans-serif",
-        filter: dark ? 'invert(1) hue-rotate(180deg)' : 'none',
-        transition: 'filter 0.35s ease',
-      }}>
-        <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
+    <FinanceProvider data={finance}>
+      <AppShell dark={dark}>
+        <div style={{ flex: 1, overflow: 'hidden', position: 'relative', display: 'flex', flexDirection: 'column' }}>
           {subScreen === 'repasse' ? (
-            <RepasseScreen repasse={repasse} setRepasse={setRepasse} onBack={closeAllSub} setTransactions={setTransactions} />
+            <RepasseScreen
+              repasse={repasseState}
+              onUpdateRepasse={handleRepasseUpdate}
+              onUpdateMonth={handleRepasseMonth}
+              onBack={closeAllSub}
+            />
           ) : subScreen === 'gestao' ? (
-            <GestaoScreen investments={investments} setInvestments={setInvestments} onBack={closeAllSub} />
+            <GestaoScreen onBack={closeAllSub} />
           ) : subScreen === 'independencia' ? (
             <IndependenciaScreen onBack={closeAllSub} />
           ) : subScreen === 'tributario' ? (
@@ -157,7 +175,7 @@ function MainApp() {
           ) : subScreen === 'simulador' ? (
             <SimuladorESeScreen onBack={closeAllSub} />
           ) : subScreen === 'relatorio' ? (
-            <RelatorioMensalScreen onBack={closeAllSub} transactions={transactions} />
+            <RelatorioMensalScreen onBack={closeAllSub} transactions={txList} />
           ) : subScreen === 'pgbl' ? (
             <PGBLScreen onBack={closeAllSub} />
           ) : subScreen === 'score' ? (
@@ -169,24 +187,30 @@ function MainApp() {
               {activeTab === 'dashboard' && (
                 <DashboardScreen
                   onNewEntry={() => setShowModal(true)}
-                  repasse={repasse}
+                  repasse={repasseState}
                   onShowRepasse={() => setShowRepasse(true)}
-                  transactions={transactions}
-                  setTransactions={setTransactions}
+                  transactions={txList}
+                  txActions={txActions}
+                  syncStatus={syncStatus}
                   onNavToMovimentos={(f) => { setMovimentosFilter(f); handleTabChange('movimentos'); }}
                 />
               )}
               {activeTab === 'movimentos' && (
-                <MovimentosScreen transactions={transactions} setTransactions={setTransactions} defaultFilter={movimentosFilter} />
+                <MovimentosScreen
+                  transactions={txList}
+                  txActions={txActions}
+                  defaultFilter={movimentosFilter}
+                />
               )}
-              {activeTab === 'planejamento' && <PlanejamentoScreen transactions={transactions} />}
+              {activeTab === 'planejamento' && <PlanejamentoScreen transactions={txList} />}
               {activeTab === 'patrimonio' && <PatrimonioScreen />}
               {activeTab === 'mais' && (
                 <MaisScreen
+                  user={user}
+                  syncStatus={syncStatus}
                   dark={dark}
-                  onToggleDark={() => setDark((d) => !d)}
-                  repasse={repasse}
-                  setRepasse={setRepasse}
+                  onToggleDark={handleToggleDark}
+                  repasse={repasseState}
                   onShowRepasse={() => setShowRepasse(true)}
                   onShowGestao={() => setShowGestao(true)}
                   onShowIndependencia={() => setShowIndependencia(true)}
@@ -212,7 +236,7 @@ function MainApp() {
             onSaveFinancing={handleSaveFinancing}
           />
         )}
-      </div>
-    </IOSDevice>
+      </AppShell>
+    </FinanceProvider>
   );
 }

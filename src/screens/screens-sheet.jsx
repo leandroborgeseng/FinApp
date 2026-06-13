@@ -1,27 +1,23 @@
 import React from 'react';
-import { AppData } from '../data.js';
 import { fmt } from '../data.js';
+import { useFinance, useRecurringOverrides } from '../hooks/useFinance.jsx';
 // screens-sheet.jsx — Planilha de Recorrências (Excel-like)
 
 function RecorrenciasSheet({ onBack }) {
-  const MONTHS = AppData.monthlyBudget.map(r => r.m);   // 31 meses
-  const BASE   = AppData.monthlyEvents;                  // 25 linhas
+  const d = useFinance();
+  const { data: overrides = {}, save } = useRecurringOverrides();
+  const MONTHS = d.monthlyBudget.map(r => r.m);
+  const BASE   = d.monthlyEvents;
 
-  // overrides[rowIdx][monthIdx] = valor customizado
-  const STORAGE_KEY = 'recorr_overrides_v1';
-  const loadOverrides = () => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch { return {}; } };
-
-  const [overrides,  setOverrides]  = React.useState(loadOverrides);
-  const [editing,    setEditing]    = React.useState(null); // { r, m }
+  const [editing,    setEditing]    = React.useState(null);
   const [editVal,    setEditVal]    = React.useState('');
-  const [filterEnt,  setFilterEnt]  = React.useState('Todos'); // Todos | PF | PJ
-  const [filterType, setFilterType] = React.useState('Todos'); // Todos | income | expense
-  const [newRow,     setNewRow]     = React.useState(null);    // {desc,type,entity,cat,value}
+  const [filterEnt,  setFilterEnt]  = React.useState('Todos');
+  const [filterType, setFilterType] = React.useState('Todos');
+  const [newRow,     setNewRow]     = React.useState(null);
   const [rows,       setRows]       = React.useState(BASE);
 
   const colRef = React.useRef(null);
 
-  // Scroll to current month on mount
   React.useEffect(() => {
     if (colRef.current) { colRef.current.scrollLeft = 0; }
   }, []);
@@ -33,8 +29,7 @@ function RecorrenciasSheet({ onBack }) {
 
   const saveOverride = (r, m, v) => {
     const next = { ...overrides, [r]: { ...(overrides[r] || {}), [m]: v } };
-    setOverrides(next);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    save.mutate(next);
   };
 
   const commitEdit = () => {
