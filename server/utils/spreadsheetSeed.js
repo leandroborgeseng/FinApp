@@ -66,6 +66,8 @@ function parseSnapshot(data) {
   return typeof data === 'string' ? JSON.parse(data) : data;
 }
 
+export { parseSnapshot };
+
 export async function isSpreadsheetLoaded(userId) {
   const { rows } = await query('SELECT data FROM user_snapshots WHERE user_id = $1', [userId]);
   if (!rows.length) return false;
