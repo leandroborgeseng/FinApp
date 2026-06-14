@@ -134,7 +134,7 @@ function SyncBadge({ status = 'synced' }) {
     offline:    { color: '#EF4444', label: 'Offline'        },
     syncing:    { color: '#F59E0B', label: 'Sincronizando…' },
     synced:     { color: '#22C55E', label: 'Sincronizado'   },
-  }[status];
+  }[status] || { color: '#22C55E', label: 'Sincronizado' };
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
       <div style={{ width: 7, height: 7, borderRadius: '50%', background: cfg.color, flexShrink: 0 }}/>

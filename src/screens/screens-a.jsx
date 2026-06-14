@@ -82,17 +82,18 @@ function DashboardScreen({ onNewEntry, repasse, onShowRepasse, transactions, txA
     }
   };
 
-  const notifEvents = d.monthlyEvents
+  const notifEvents = (d.monthlyEvents || [])
     .filter(e => e.day > todayDay && e.day <= todayDay + 3 && !confirmedKeys.has(`${e.desc}|${monthKey}-${String(e.day).padStart(2, '0')}`))
     .sort((a, b) => a.day - b.day);
 
-  const upcoming = d.monthlyEvents
+  const upcoming = (d.monthlyEvents || [])
     .filter(e => e.day >= todayDay)
     .sort((a, b) => a.day - b.day)
     .slice(0, 4);
 
-  const cdbNow   = d.cdbProjection[0];
-  const cdbFinal = d.cdbProjection[d.cdbProjection.length - 1];
+  const cdbRows = d.cdbProjection || [];
+  const cdbNow   = cdbRows[0] || { ret: 0, aplic: 0, value: 0 };
+  const cdbFinal = cdbRows[cdbRows.length - 1] || cdbNow;
 
   // Repasse stats (new structure)
   const rMonths  = repasse?.months || [];
@@ -124,7 +125,7 @@ function DashboardScreen({ onNewEntry, repasse, onShowRepasse, transactions, txA
   ];
 
   return (
-    <div style={{ overflowY: 'auto', height: '100%', background: 'var(--bg-app)', fontFamily: 'DM Sans, system-ui' }}>
+    <div className="screen-scroll" style={{ background: 'var(--bg-app)', fontFamily: 'DM Sans, system-ui' }}>
       <div style={{ padding: 'var(--pad-top) var(--pad-x) var(--pad-bottom)', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
         {/* Header */}
@@ -289,7 +290,7 @@ function DashboardScreen({ onNewEntry, repasse, onShowRepasse, transactions, txA
           <ChartBox height={100}>
             {(w, h) => (
               <AreaChart
-                data={d.cdbProjection.map(c => ({ label: c.label.slice(0, 3), value: c.value }))}
+                data={(d.cdbProjection || []).map(c => ({ label: c.label.slice(0, 3), value: c.value }))}
                 width={w} height={h} color="#7C3AED"
               />
             )}
@@ -306,8 +307,8 @@ function DashboardScreen({ onNewEntry, repasse, onShowRepasse, transactions, txA
 
         {/* Taxa de poupança + composição do mês */}
         {(() => {
-          const totalRec = d.monthlyEvents.filter(e => e.type === 'income').reduce((s,e) => s+e.value, 0);
-          const totalDesp = d.monthlyEvents.filter(e => e.type === 'expense').reduce((s,e) => s+e.value, 0);
+          const totalRec = (d.monthlyEvents || []).filter(e => e.type === 'income').reduce((s,e) => s+e.value, 0);
+          const totalDesp = (d.monthlyEvents || []).filter(e => e.type === 'expense').reduce((s,e) => s+e.value, 0);
           const sobra = totalRec - totalDesp;
           const savePct = totalRec > 0 ? Math.round(sobra / totalRec * 100) : 0;
           const goalPct = 30;
@@ -375,7 +376,7 @@ function DashboardScreen({ onNewEntry, repasse, onShowRepasse, transactions, txA
             </div>
           </div>
           <ChartBox height={120}>
-            {(w, h) => <BarChart data={d.cashFlow} width={w} height={h}/>}
+            {(w, h) => <BarChart data={d.cashFlow || []} width={w} height={h}/>}
           </ChartBox>
         </Card>
 

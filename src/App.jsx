@@ -15,7 +15,7 @@ import { IndependenciaScreen, TributarioScreen } from './screens/screens-analise
 import { ComparativoMesesScreen, CalculadoraRentabilidadeScreen } from './screens/screens-extra.jsx';
 import { SimuladorESeScreen, RelatorioMensalScreen, PGBLScreen, ScoreSaudeScreen } from './screens/screens-tools.jsx';
 import { RecorrenciasSheet } from './screens/screens-sheet.jsx';
-import { ToastHost } from './components/Toast.jsx';
+import { ErrorBoundary } from './components/ErrorBoundary.jsx';
 import { applyThemeClass } from './lib/theme.js';
 import { loadActiveTab, saveActiveTab } from './lib/appPrefs.js';
 
@@ -226,7 +226,8 @@ function MainApp({ user }) {
   return (
     <FinanceProvider data={finance}>
       <AppShell dark={dark}>
-        <div style={{ flex: 1, overflow: 'hidden', position: 'relative', display: 'flex', flexDirection: 'column' }}>
+        <ErrorBoundary>
+        <div className="app-main">
           {subScreen === 'repasse' ? (
             <RepasseScreen
               repasse={repasseState}
@@ -300,6 +301,7 @@ function MainApp({ user }) {
             </>
           )}
         </div>
+        </ErrorBoundary>
         {showFAB && <FAB onClick={() => setShowModal(true)} />}
         {!subScreen && <BottomNav active={activeTab} onTabChange={handleTabChange} />}
         {showModal && (

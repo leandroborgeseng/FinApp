@@ -28,6 +28,23 @@ export class ErrorBoundary extends React.Component {
           </div>
           <button
             type="button"
+            onClick={async () => {
+              try {
+                const { db } = await import('../lib/db.js');
+                await db.apiCache.clear();
+                await db.syncQueue.clear();
+              } catch { /* ignore */ }
+              window.location.reload();
+            }}
+            style={{
+              padding: '10px 16px', borderRadius: 12, border: '1.5px solid var(--border)',
+              background: 'var(--bg-card)', color: 'var(--text-primary)', fontWeight: 600, cursor: 'pointer',
+            }}
+          >
+            Limpar cache e recarregar
+          </button>
+          <button
+            type="button"
             onClick={() => window.location.reload()}
             style={{
               padding: '12px 20px', borderRadius: 12, border: 'none',

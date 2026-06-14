@@ -37,29 +37,35 @@ export function deriveFromBudget(MB) {
 }
 
 export function buildFinancePayload(snap) {
-  const MB = snap.monthlyBudget || [];
+  const base = snap && typeof snap === 'object' ? snap : {};
+  const MB = base.monthlyBudget || [];
   const derived = deriveFromBudget(MB);
   return {
-    netWorth: snap.netWorth,
-    pfAvailable: snap.pfAvailable,
-    pjAvailable: snap.pjAvailable,
-    pfInvestments: snap.pfInvestments,
-    pjInvestments: snap.pjInvestments,
-    debts: snap.debts,
-    monthResult: snap.monthResult,
-    nextMonthForecast: snap.nextMonthForecast,
+    netWorth: base.netWorth ?? 0,
+    pfAvailable: base.pfAvailable ?? 0,
+    pjAvailable: base.pjAvailable ?? 0,
+    pfInvestments: base.pfInvestments ?? 0,
+    pjInvestments: base.pjInvestments ?? 0,
+    debts: base.debts ?? 0,
+    monthResult: base.monthResult ?? 0,
+    nextMonthForecast: base.nextMonthForecast ?? 0,
     monthlyBudget: MB,
-    monthlyEvents: snap.monthlyEvents || [],
-    investments: snap.investments || { pf: [], pj: [] },
-    financingList: snap.financingList || [],
-    financing: snap.financing || snap.financingList?.[0],
-    goals: snap.goals || [],
-    repasse: snap.repasse,
-    recurringOverrides: snap.recurringOverrides || {},
-    wealthForecast: snap.wealthForecast || [],
-    preferences: snap.preferences || { dark: false },
-    accounts: snap.accounts || [],
-    startBalances: snap.startBalances || { PF: snap.pfAvailable, PJ: snap.pjAvailable, Todos: (snap.pfAvailable || 0) + (snap.pjAvailable || 0) },
+    monthlyEvents: base.monthlyEvents || [],
+    investments: base.investments || { pf: [], pj: [] },
+    financingList: base.financingList || [],
+    financing: base.financing || base.financingList?.[0],
+    goals: base.goals || [],
+    repasse: base.repasse,
+    recurringOverrides: base.recurringOverrides || {},
+    wealthForecast: base.wealthForecast || [],
+    preferences: base.preferences || { dark: false },
+    accounts: base.accounts || [],
+    startBalances: base.startBalances || { PF: base.pfAvailable, PJ: base.pjAvailable, Todos: (base.pfAvailable || 0) + (base.pjAvailable || 0) },
+    cashFlow: derived.cashFlow || [],
+    cdbProjection: derived.cdbProjection || [],
+    planningChart36: derived.planningChart36 || [],
+    planning: derived.planning || [],
+    netWorthHistory: derived.netWorthHistory || [],
     ...derived,
   };
 }

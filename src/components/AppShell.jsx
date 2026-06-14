@@ -8,7 +8,6 @@ export function AppShell({ children, dark }) {
 
   return (
     <div className="app-shell" style={{
-      minHeight: '100dvh',
       width: '100%',
       maxWidth: 'min(100%, 960px)',
       margin: '0 auto',

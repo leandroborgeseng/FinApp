@@ -230,7 +230,11 @@ export async function importUserData(userId, { snapshot, transactions }) {
 export async function getSnapshot(userId) {
   if (getPool()) {
     const { rows } = await query('SELECT data FROM user_snapshots WHERE user_id = $1', [userId]);
-    return rows[0]?.data || buildSnapshotData();
+    let data = rows[0]?.data;
+    if (typeof data === 'string') {
+      try { data = JSON.parse(data); } catch { data = null; }
+    }
+    return data || buildSnapshotData();
   }
   const base = buildSnapshotData();
   return {

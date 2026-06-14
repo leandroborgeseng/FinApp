@@ -12,8 +12,12 @@ export function useSyncStatus() {
     let mounted = true;
 
     async function refresh() {
-      const next = await getFullSyncStatus();
-      if (mounted) setState(next);
+      try {
+        const next = await getFullSyncStatus();
+        if (mounted) setState(next);
+      } catch {
+        if (mounted) setState((s) => ({ ...s, pending: 0 }));
+      }
     }
 
     const unsub = subscribeSyncStatus(() => refresh());
