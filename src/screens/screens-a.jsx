@@ -616,9 +616,13 @@ function MovimentosScreen({ transactions, txActions, defaultFilter }) {
     setExpanded(null);
   };
   const saveEdit = (id) => {
-    if (!txActions || !editing[id]) return;
-    txActions.update(id, editing[id]);
-    setEditing(prev => { const n = {...prev}; delete n[id]; return n; });
+    if (!txActions) return;
+    const tx = filtered.find((t) => t.id === id);
+    if (!tx || !editing[id]) return;
+    const patch = { ...editing[id] };
+    if (patch.value !== undefined) patch.value = Number(patch.value) || tx.value;
+    txActions.update(id, patch);
+    setEditing((prev) => { const n = { ...prev }; delete n[id]; return n; });
     setExpanded(null);
   };
 
@@ -806,10 +810,26 @@ function MovimentosScreen({ transactions, txActions, defaultFilter }) {
                               style={{ width: '100%', padding: '8px 10px', borderRadius: 9, border: '1.5px solid var(--border)', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', background: 'var(--bg-card)', outline: 'none', fontFamily: 'DM Sans, system-ui', boxSizing: 'border-box' }}/>
                           </div>
                         ))}
+                        <div>
+                          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3 }}>Data</div>
+                          <input
+                            type="date"
+                            defaultValue={tx.date}
+                            onChange={(e) => setEditing((prev) => ({
+                              ...prev,
+                              [tx.id]: { ...(prev[tx.id] || {}), date: e.target.value },
+                            }))}
+                            style={{
+                              width: '100%', padding: '8px 10px', borderRadius: 9,
+                              border: '1.5px solid var(--border)', fontSize: 13, fontWeight: 600,
+                              color: 'var(--text-primary)', background: 'var(--bg-card)',
+                              outline: 'none', fontFamily: 'DM Sans, system-ui', boxSizing: 'border-box',
+                            }}
+                          />
+                        </div>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)', marginBottom: 10 }}>
                         <span>Conta: <strong style={{ color: 'var(--text-primary)' }}>{tx.entity}</strong></span>
-                        <span>Data: <strong style={{ color: 'var(--text-primary)' }}>{fmtDate(tx.date)}</strong></span>
                         <span>Tipo: <strong style={{ color: 'var(--text-primary)' }}>{tx.type === 'income' ? 'Receita' : tx.type === 'expense' ? 'Despesa' : 'Transfer.'}</strong></span>
                       </div>
                       <div style={{ display: 'flex', gap: 6 }}>
