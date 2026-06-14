@@ -1,4 +1,5 @@
 import { db } from '../lib/db.js';
+import { derivePortfolioFromSnapshot } from '../lib/portfolioTotals.js';
 
 const listeners = new Set();
 let processing = false;
@@ -104,7 +105,7 @@ async function patchInvestments(mutator) {
       pf: [...(boot.investments.pf || [])],
       pj: [...(boot.investments.pj || [])],
     });
-    return inv ? { ...boot, investments: inv } : boot;
+    return inv ? derivePortfolioFromSnapshot({ ...boot, investments: inv }) : boot;
   });
 
   return next;
@@ -149,7 +150,7 @@ async function patchAccounts(mutator) {
   return patchBootstrap((boot) => {
     const accounts = [...(boot.accounts || [])];
     const next = mutator(accounts);
-    return next ? { ...boot, accounts: next } : boot;
+    return next ? derivePortfolioFromSnapshot({ ...boot, accounts: next }) : boot;
   });
 }
 

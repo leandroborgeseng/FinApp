@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as store from '../store/index.js';
 import { authRequired } from '../middleware/auth.js';
+import { derivePortfolioFromSnapshot } from '../../src/lib/portfolioTotals.js';
 
 const router = Router();
 router.use(authRequired);
@@ -44,7 +45,13 @@ router.put('/investments/:id', async (req, res) => {
     const idx = (snap.investments?.[group] || []).findIndex((i) => slug(i.name) === req.params.id);
     if (idx >= 0) {
       snap.investments[group][idx] = { ...snap.investments[group][idx], ...req.body };
-      await store.updateSnapshot(req.user.id, { investments: snap.investments });
+      const derived = derivePortfolioFromSnapshot(snap);
+      await store.updateSnapshot(req.user.id, {
+        investments: snap.investments,
+        pfInvestments: derived.pfInvestments,
+        pjInvestments: derived.pjInvestments,
+        netWorth: derived.netWorth,
+      });
       return res.json(snap.investments[group][idx]);
     }
   }
@@ -139,7 +146,14 @@ router.put('/accounts/:id', async (req, res) => {
   const idx = list.findIndex((a) => a.id === req.params.id);
   if (idx < 0) return res.status(404).json({ error: 'Conta não encontrada' });
   list[idx] = { ...list[idx], ...req.body };
-  await store.updateSnapshot(req.user.id, { accounts: list });
+  const derived = derivePortfolioFromSnapshot({ ...snap, accounts: list });
+  await store.updateSnapshot(req.user.id, {
+    accounts: list,
+    pfAvailable: derived.pfAvailable,
+    pjAvailable: derived.pjAvailable,
+    startBalances: derived.startBalances,
+    netWorth: derived.netWorth,
+  });
   res.json(list[idx]);
 });
 
