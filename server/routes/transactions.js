@@ -40,6 +40,15 @@ router.put('/:id', async (req, res) => {
   res.json(updated);
 });
 
+router.post('/bulk-delete', async (req, res) => {
+  const { month, ids, before } = req.body || {};
+  if (!month && !(Array.isArray(ids) && ids.length) && !before) {
+    return res.status(400).json({ error: 'Informe month, ids ou before' });
+  }
+  const result = await store.deleteTransactionsBulk(req.user.id, { month, ids, before });
+  res.json(result);
+});
+
 router.delete('/:id', async (req, res) => {
   const deleted = await store.deleteTransaction(req.user.id, req.params.id);
   if (!deleted) return res.status(404).json({ error: 'Não encontrado' });

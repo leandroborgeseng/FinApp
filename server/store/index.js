@@ -190,6 +190,43 @@ export async function deleteTransaction(userId, id) {
   return memory.transactions.length < before;
 }
 
+export async function deleteTransactionsBulk(userId, { month, ids, before } = {}) {
+  if (getPool()) {
+    if (Array.isArray(ids) && ids.length) {
+      const result = await query(
+        'DELETE FROM transactions WHERE user_id = $1 AND id = ANY($2::text[])',
+        [userId, ids.map(String)],
+      );
+      return { deleted: result.rowCount ?? 0 };
+    }
+    if (month) {
+      const result = await query(
+        'DELETE FROM transactions WHERE user_id = $1 AND date LIKE $2',
+        [userId, `${month}%`],
+      );
+      return { deleted: result.rowCount ?? 0 };
+    }
+    if (before) {
+      const result = await query(
+        'DELETE FROM transactions WHERE user_id = $1 AND date < $2',
+        [userId, before],
+      );
+      return { deleted: result.rowCount ?? 0 };
+    }
+    return { deleted: 0 };
+  }
+  const beforeCount = memory.transactions.length;
+  if (Array.isArray(ids) && ids.length) {
+    const set = new Set(ids.map(String));
+    memory.transactions = memory.transactions.filter((t) => !set.has(String(t.id)));
+  } else if (month) {
+    memory.transactions = memory.transactions.filter((t) => !t.date?.startsWith(month));
+  } else if (before) {
+    memory.transactions = memory.transactions.filter((t) => !(t.date < before));
+  }
+  return { deleted: beforeCount - memory.transactions.length };
+}
+
 export async function replaceTransactions(userId, list) {
   if (getPool()) {
     await query('DELETE FROM transactions WHERE user_id = $1', [userId]);

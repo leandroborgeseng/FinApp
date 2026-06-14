@@ -23,3 +23,7 @@ export function updateTransaction(id, patch) {
 export function deleteTransaction(id) {
   return apiFetch(`/transactions/${id}`, { method: 'DELETE' });
 }
+
+export function deleteTransactionsBulk(payload) {
+  return apiFetch('/transactions/bulk-delete', { method: 'POST', body: JSON.stringify(payload) });
+}

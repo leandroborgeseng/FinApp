@@ -54,5 +54,14 @@ export function useTransactionMutations() {
     onError: (err) => toast.error(err?.message),
   });
 
-  return { create, update, remove, bulkCreate };
+  const bulkRemove = useMutation({
+    mutationFn: txApi.deleteTransactionsBulk,
+    onSuccess: (result) => {
+      invalidate();
+      toast.success(`${result?.deleted || 0} lançamento(s) removido(s)`);
+    },
+    onError: (err) => toast.error(err?.message),
+  });
+
+  return { create, update, remove, bulkCreate, bulkRemove };
 }

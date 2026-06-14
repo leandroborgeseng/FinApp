@@ -569,7 +569,7 @@ function PatrimonioScreen() {
 }
 
 /* ── Mais ───────────────────────────────────────────── */
-function MaisScreen({ user, syncStatus, dark, onToggleDark, repasse, onShowRepasse, onShowGestao, onShowGestaoContas, onShowIndependencia, onShowTributario, onShowComparativo, onShowCalculadora, onShowSimulador, onShowRelatorio, onShowPGBL, onShowScore, onShowPlanilha }) {
+function MaisScreen({ user, syncStatus, dark, onToggleDark, repasse, onShowRepasse, onShowGestao, onShowGestaoContas, onShowIndependencia, onShowTributario, onShowComparativo, onShowCalculadora, onShowSimulador, onShowRelatorio, onShowPGBL, onShowScore, onShowPlanilha, onShowAuditoria }) {
   const d = useFinance();
   const { logout } = useAuth();
   const qc = useQueryClient();
@@ -669,6 +669,7 @@ function MaisScreen({ user, syncStatus, dark, onToggleDark, repasse, onShowRepas
       items: [
         { icon: '◉', label: 'Contas e cartões', desc: 'Saldos PF/PJ e faturas', action: onShowGestaoContas },
         { icon: '↺', label: 'Recorrências',    desc: `${d.monthlyEvents?.length || 0} lançamentos fixos`,   action: onShowPlanilha },
+        { icon: '☰', label: 'Auditoria de lançamentos', desc: 'Revisar e limpar mês a mês', action: onShowAuditoria },
       ],
     },
     {

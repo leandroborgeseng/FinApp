@@ -15,6 +15,7 @@ import { IndependenciaScreen, TributarioScreen } from './screens/screens-analise
 import { ComparativoMesesScreen, CalculadoraRentabilidadeScreen } from './screens/screens-extra.jsx';
 import { SimuladorESeScreen, RelatorioMensalScreen, PGBLScreen, ScoreSaudeScreen } from './screens/screens-tools.jsx';
 import { RecorrenciasSheet } from './screens/screens-sheet.jsx';
+import { RevisaoLancamentosScreen } from './screens/screens-audit.jsx';
 import { ErrorBoundary } from './components/ErrorBoundary.jsx';
 import { ToastHost } from './components/Toast.jsx';
 import { applyThemeClass } from './lib/theme.js';
@@ -72,6 +73,7 @@ function MainApp({ user }) {
   const [showPGBL, setShowPGBL] = React.useState(false);
   const [showScore, setShowScore] = React.useState(false);
   const [showPlanilha, setShowPlanilha] = React.useState(false);
+  const [showAuditoria, setShowAuditoria] = React.useState(false);
   const [dark, setDark] = React.useState(() => {
     if (localStorage.getItem('fin_dark') === '1') return true;
     return false;
@@ -108,6 +110,7 @@ function MainApp({ user }) {
     setShowPGBL(false);
     setShowScore(false);
     setShowPlanilha(false);
+    setShowAuditoria(false);
   };
 
   const openGestao = (tab = 'financ') => {
@@ -190,6 +193,7 @@ function MainApp({ user }) {
     : showPGBL ? 'pgbl'
     : showScore ? 'score'
     : showPlanilha ? 'planilha'
+    : showAuditoria ? 'auditoria'
     : null;
 
   const showFAB = !subScreen && (activeTab === 'dashboard' || activeTab === 'movimentos');
@@ -256,6 +260,13 @@ function MainApp({ user }) {
             <ScoreSaudeScreen onBack={closeAllSub} />
           ) : subScreen === 'planilha' ? (
             <RecorrenciasSheet onBack={closeAllSub} transactions={txList} txActions={txActions} />
+          ) : subScreen === 'auditoria' ? (
+            <RevisaoLancamentosScreen
+              onBack={closeAllSub}
+              transactions={txList}
+              txActions={txActions}
+              dataStartsAt={preferences?.dataStartsAt}
+            />
           ) : (
             <>
               {activeTab === 'dashboard' && (
@@ -297,6 +308,7 @@ function MainApp({ user }) {
                   onShowPGBL={() => setShowPGBL(true)}
                   onShowScore={() => setShowScore(true)}
                   onShowPlanilha={() => setShowPlanilha(true)}
+                  onShowAuditoria={() => setShowAuditoria(true)}
                 />
               )}
             </>

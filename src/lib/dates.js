@@ -89,3 +89,29 @@ export function monthKeyFromBudgetIndex(budget, monthIdx) {
   const label = budget[monthIdx]?.m;
   return label ? budgetLabelToKey(label) : currentMonthKey();
 }
+
+/** Chaves YYYY-MM de jan até o mês atual (ou dez) do ano informado. */
+export function yearMonthKeys(year = new Date().getFullYear(), date = new Date()) {
+  const endMonth = year === date.getFullYear() ? date.getMonth() : 11;
+  return Array.from({ length: endMonth + 1 }, (_, i) =>
+    `${year}-${String(i + 1).padStart(2, '0')}`,
+  );
+}
+
+export function monthKeyToLabel(monthKey) {
+  const [y, m] = monthKey.split('-').map(Number);
+  if (!m || m < 1 || m > 12) return monthKey;
+  return `${MONTH_LABELS[m - 1]}/${String(y).slice(2)}`;
+}
+
+export function yearPeriodBounds(year = new Date().getFullYear(), date = new Date()) {
+  const current = currentMonthKey(date);
+  const [cy, cm] = current.split('-').map(Number);
+  const yearStart = `${year}-01-01`;
+  const yearEndExclusive = year !== cy
+    ? `${year + 1}-01-01`
+    : cm === 12
+      ? `${cy + 1}-01-01`
+      : `${cy}-${String(cm + 1).padStart(2, '0')}-01`;
+  return { yearStart, yearEndExclusive, currentMonthKey: current };
+}

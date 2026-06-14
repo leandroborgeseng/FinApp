@@ -1,7 +1,7 @@
 import { useTransactions, useTransactionMutations } from './useTransactions.js';
 
 export function useTransactionActions() {
-  const { create, update, remove, bulkCreate } = useTransactionMutations();
+  const { create, update, remove, bulkCreate, bulkRemove } = useTransactionMutations();
 
   return {
     create: (tx) => create.mutate(tx),
@@ -10,8 +10,10 @@ export function useTransactionActions() {
     bulkCreateAsync: (txs) => bulkCreate.mutateAsync(txs),
     update: (id, patch) => update.mutate({ id: String(id), patch }),
     remove: (id) => remove.mutate(String(id)),
+    bulkRemove: (payload) => bulkRemove.mutate(payload),
+    bulkRemoveAsync: (payload) => bulkRemove.mutateAsync(payload),
     toggleDone: (id, done) => update.mutate({ id: String(id), patch: { done } }),
-    isPending: create.isPending || update.isPending || remove.isPending || bulkCreate.isPending,
+    isPending: create.isPending || update.isPending || remove.isPending || bulkCreate.isPending || bulkRemove.isPending,
   };
 }
 
