@@ -33,12 +33,12 @@ export async function resetAccountToCurrentMonth(userId, monthKey = currentMonth
     [userId, JSON.stringify(snap)],
   );
 
-  const monthStart = `${monthKey}-01`;
   const monthEnd = nextMonthStart(monthKey);
 
+  // Apaga tudo até o fim do mês atual (histórico + mês corrente para recriar limpo)
   await query(
-    'DELETE FROM transactions WHERE user_id = $1 AND (date < $2 OR date >= $3)',
-    [userId, monthStart, monthEnd],
+    'DELETE FROM transactions WHERE user_id = $1 AND date < $2',
+    [userId, monthEnd],
   );
 
   const txs = buildSpreadsheetTransactions(monthIdx);
