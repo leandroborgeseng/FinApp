@@ -16,6 +16,7 @@ import { ComparativoMesesScreen, CalculadoraRentabilidadeScreen } from './screen
 import { SimuladorESeScreen, RelatorioMensalScreen, PGBLScreen, ScoreSaudeScreen } from './screens/screens-tools.jsx';
 import { RecorrenciasSheet } from './screens/screens-sheet.jsx';
 import { ErrorBoundary } from './components/ErrorBoundary.jsx';
+import { ToastHost } from './components/Toast.jsx';
 import { applyThemeClass } from './lib/theme.js';
 import { loadActiveTab, saveActiveTab } from './lib/appPrefs.js';
 
