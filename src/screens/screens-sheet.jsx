@@ -14,6 +14,8 @@ function RecorrenciasSheet({ onBack, transactions = [], txActions }) {
 
   const [editing,    setEditing]    = React.useState(null);
   const [editVal,    setEditVal]    = React.useState('');
+  const [editingDay, setEditingDay] = React.useState(null);
+  const [editDayVal, setEditDayVal] = React.useState('');
   const [filterEnt,  setFilterEnt]  = React.useState('Todos');
   const [filterType, setFilterType] = React.useState('Todos');
   const [newRow,     setNewRow]     = React.useState(null);
@@ -47,6 +49,16 @@ function RecorrenciasSheet({ onBack, transactions = [], txActions }) {
     setEditing(null);
   };
 
+  const saveDay = (r) => {
+    const day = Math.min(31, Math.max(1, parseInt(editDayVal, 10) || rows[r]?.day || 5));
+    const next = rows.map((row, i) => (i === r ? { ...row, day } : row));
+    setRows(next);
+    saveEvents.mutate(next);
+    setEditingDay(null);
+  };
+
+  const clampDay = (n) => Math.min(31, Math.max(1, n));
+
   // Column totals
   const colTotals = MONTHS.map((_, m) => {
     const visRows = rows.filter((row, r) => {
@@ -66,11 +78,18 @@ function RecorrenciasSheet({ onBack, transactions = [], txActions }) {
   });
 
   const COL_W  = 74;  // px per month column
-  const FIRST_W = 130; // px for item name column
+  const FIRST_W = 148; // px for item name + dia
 
   const addRow = () => {
     if (!newRow?.desc) return;
-    const row = { desc: newRow.desc, type: newRow.type || 'expense', value: Number(newRow.value) || 0, entity: newRow.entity || 'PF', cat: newRow.cat || 'Outros', day: 5 };
+    const row = {
+      desc: newRow.desc,
+      type: newRow.type || 'expense',
+      value: Number(newRow.value) || 0,
+      entity: newRow.entity || 'PF',
+      cat: newRow.cat || 'Outros',
+      day: clampDay(Number(newRow.day) || 5),
+    };
     const next = [...rows, row];
     setRows(next);
     saveEvents.mutate(next);
@@ -119,7 +138,7 @@ function RecorrenciasSheet({ onBack, transactions = [], txActions }) {
             <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-primary)' }}>Planilha de Recorrências</div>
             <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 1 }}>{visRows.length} lançamentos · {MONTHS.length} meses · role para o lado</div>
           </div>
-          <button onClick={() => setNewRow({ desc: '', type: 'expense', entity: 'PF', cat: 'Outros', value: '' })}
+          <button onClick={() => setNewRow({ desc: '', type: 'expense', entity: 'PF', cat: 'Outros', value: '', day: '5' })}
             style={{ width: 34, height: 34, borderRadius: '50%', background: 'var(--text-primary)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--text-inverse)', fontSize: 20, fontWeight: 300 }}>+</button>
         </div>
 
@@ -168,6 +187,14 @@ function RecorrenciasSheet({ onBack, transactions = [], txActions }) {
             <option value="PF">PF</option>
             <option value="PJ">PJ</option>
           </select>
+          <input
+            placeholder="Dia"
+            value={newRow.day ?? '5'}
+            onChange={(e) => setNewRow((p) => ({ ...p, day: e.target.value.replace(/\D/g, '').slice(0, 2) }))}
+            inputMode="numeric"
+            title="Dia do mês"
+            style={{ width: 44, padding: '7px 6px', borderRadius: 8, border: '1.5px solid #86EFAC', fontSize: 12, fontFamily: 'DM Sans, system-ui', outline: 'none', background: 'var(--bg-card)', textAlign: 'center' }}
+          />
           <button onClick={addRow} style={{ padding: '7px 14px', borderRadius: 8, border: 'none', background: '#16A34A', color: 'var(--text-inverse)', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, system-ui' }}>OK</button>
           <button onClick={() => setNewRow(null)} style={{ padding: '7px 10px', borderRadius: 8, border: 'none', background: '#FEF2F2', color: '#DC2626', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, system-ui' }}>✕</button>
         </div>
@@ -202,9 +229,56 @@ function RecorrenciasSheet({ onBack, transactions = [], txActions }) {
               return (
                 <div key={r} style={{ display: 'flex', background: rowBg, borderBottom: '1px solid var(--divider)' }}>
                   {/* Item name — sticky */}
-                  <div style={{ width: FIRST_W, minWidth: FIRST_W, flexShrink: 0, padding: '8px 12px', position: 'sticky', left: 0, background: rowBg, zIndex: 2, borderRight: '2px solid #ECEEF4', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <div style={{ width: FIRST_W, minWidth: FIRST_W, flexShrink: 0, padding: '8px 10px', position: 'sticky', left: 0, background: rowBg, zIndex: 2, borderRight: '2px solid #ECEEF4', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                     <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.desc}</div>
-                    <div style={{ display: 'flex', gap: 4, marginTop: 2 }}>
+                    <div style={{ display: 'flex', gap: 4, marginTop: 3, flexWrap: 'wrap', alignItems: 'center' }}>
+                      {editingDay === r ? (
+                        <input
+                          autoFocus
+                          value={editDayVal}
+                          onChange={(e) => setEditDayVal(e.target.value.replace(/\D/g, '').slice(0, 2))}
+                          onBlur={() => saveDay(r)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') saveDay(r);
+                            if (e.key === 'Escape') setEditingDay(null);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          inputMode="numeric"
+                          style={{
+                            width: 36, padding: '2px 4px', borderRadius: 6,
+                            border: '1.5px solid #BFDBFE', fontSize: 10, fontWeight: 700,
+                            color: '#1D4ED8', background: '#EFF6FF', outline: 'none',
+                            textAlign: 'center', fontFamily: 'DM Sans, system-ui',
+                          }}
+                        />
+                      ) : (
+                        <span
+                          role="button"
+                          tabIndex={0}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingDay(r);
+                            setEditDayVal(String(row.day || 5));
+                            setEditing(null);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              setEditingDay(r);
+                              setEditDayVal(String(row.day || 5));
+                              setEditing(null);
+                            }
+                          }}
+                          style={{
+                            fontSize: 8, padding: '1px 5px', borderRadius: 4,
+                            background: '#EFF6FF', color: '#1D4ED8', fontWeight: 700,
+                            cursor: 'pointer', border: '1px solid #BFDBFE',
+                          }}
+                          title="Toque para alterar o dia"
+                        >
+                          dia {row.day || 5}
+                        </span>
+                      )}
                       <span style={{ fontSize: 8, padding: '1px 5px', borderRadius: 4, background: row.entity === 'PF' ? '#EFF6FF' : '#F5F3FF', color: row.entity === 'PF' ? '#2563EB' : '#7C3AED', fontWeight: 700 }}>{row.entity}</span>
                       <span style={{ fontSize: 8, padding: '1px 5px', borderRadius: 4, background: isInc ? '#F0FDF4' : '#FEF2F2', color: isInc ? '#16A34A' : '#DC2626', fontWeight: 700 }}>{isInc ? 'REC' : 'DES'}</span>
                     </div>
@@ -216,7 +290,7 @@ function RecorrenciasSheet({ onBack, transactions = [], txActions }) {
                     const isEd  = editing?.r === r && editing?.m === mi;
                     const isOv  = overrides[r]?.[mi] !== undefined;
                     return (
-                      <div key={mi} onClick={() => { setEditing({ r, m: mi }); setEditVal(String(v)); }}
+                      <div key={mi} onClick={() => { setEditingDay(null); setEditing({ r, m: mi }); setEditVal(String(v)); }}
                         style={{ width: COL_W, minWidth: COL_W, flexShrink: 0, padding: '5px 4px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRight: '1px solid #F4F5F8', background: isEd ? (isInc ? '#F0FDF4' : '#FEF2F2') : mi === 0 ? '#EFF6FF20' : 'transparent', cursor: 'pointer', position: 'relative' }}>
                         {isEd ? (
                           <input autoFocus value={editVal}
@@ -268,7 +342,7 @@ function RecorrenciasSheet({ onBack, transactions = [], txActions }) {
 
       {/* Bottom hint */}
       <div style={{ flexShrink: 0, padding: '8px 16px', background: 'var(--bg-card)', borderTop: '1px solid var(--border)', fontSize: 10, color: 'var(--text-faint)', textAlign: 'center' }}>
-        Toque em qualquer célula para editar · pontos laranja = valor customizado · role ➝ para ver todos os meses
+        Toque na célula para editar valor · toque em dia N (azul) para mudar o dia fixo · pontos laranja = valor customizado
       </div>
     </div>
   );
