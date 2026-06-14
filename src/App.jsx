@@ -95,8 +95,6 @@ function MainApp({ user }) {
     savePreferences.mutate({ dark: next });
   };
 
-  const repasseState = repasse || finance.repasse;
-
   const closeAllSub = () => {
     setShowRepasse(false);
     setShowGestao(false);
@@ -222,6 +220,8 @@ function MainApp({ user }) {
       </AppShell>
     );
   }
+
+  const repasseState = repasse || finance.repasse;
 
   return (
     <FinanceProvider data={finance}>
