@@ -55,6 +55,7 @@ export async function resetFromDate(userId, opts = {}) {
     spreadsheetLoaded: snap.preferences?.spreadsheetLoaded ?? true,
     dataStartsAt: cutoffDate,
     historyCutoff: cutoffDate,
+    baselineLocked: true,
   };
 
   const derived = derivePortfolioFromSnapshot({ ...snap, accounts });

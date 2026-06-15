@@ -7,6 +7,7 @@ import { runMigrations } from './db/pool.js';
 import { ensureDemoUser } from './db/seedUser.js';
 import { ensureAllSpreadsheetsLoaded } from './utils/spreadsheetSeed.js';
 import { ensureAccountMonthBaseline } from './utils/resetCurrentMonth.js';
+import { migrateAllUserData } from './utils/migrateUserData.js';
 import authRoutes from './routes/auth.js';
 import transactionRoutes from './routes/transactions.js';
 import bootstrapRoutes from './routes/bootstrap.js';
@@ -57,7 +58,11 @@ async function start() {
   if (hasDb) {
     await ensureDemoUser();
     await ensureAllSpreadsheetsLoaded();
-    await ensureAccountMonthBaseline();
+    if (process.env.FORCE_RESET_MONTH === 'true') {
+      await ensureAccountMonthBaseline();
+    } else {
+      await migrateAllUserData();
+    }
   }
 
   app.listen(PORT, '0.0.0.0', () => {

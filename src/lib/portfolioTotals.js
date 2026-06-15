@@ -4,18 +4,16 @@ const LEGACY_DEMO_CHECKING = { 'pf-cc': 85000, 'pj-cc': 320000 };
 export function clearLegacyDemoAccountBalances(accounts) {
   if (!accounts?.length) return accounts;
 
-  const legacyIds = Object.keys(LEGACY_DEMO_CHECKING);
-  const allLegacy = legacyIds.every((id) => {
-    const acc = accounts.find((a) => a.id === id && a.type === 'checking');
-    return acc && Number(acc.balance) === LEGACY_DEMO_CHECKING[id];
+  let changed = false;
+  const next = accounts.map((a) => {
+    if (a.type === 'checking' && LEGACY_DEMO_CHECKING[a.id] === Number(a.balance)) {
+      changed = true;
+      return { ...a, balance: 0 };
+    }
+    return a;
   });
-  if (!allLegacy) return accounts;
 
-  return accounts.map((a) => (
-    a.type === 'checking' && LEGACY_DEMO_CHECKING[a.id] === Number(a.balance)
-      ? { ...a, balance: 0 }
-      : a
-  ));
+  return changed ? next : accounts;
 }
 
 export function sumCheckingByEntity(accounts, entity) {

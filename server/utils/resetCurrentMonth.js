@@ -62,6 +62,7 @@ export async function ensureAccountMonthBaseline() {
   for (const { id } of users) {
     const { rows } = await query('SELECT data FROM user_snapshots WHERE user_id = $1', [id]);
     const prefs = parseSnapshot(rows[0]?.data)?.preferences;
+    if (prefs?.baselineLocked) continue;
     const startsAt = prefs?.dataStartsAt || '';
     if (!force && startsAt && (startsAt === monthKey || startsAt.startsWith(`${monthKey}-`))) continue;
 

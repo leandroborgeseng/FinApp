@@ -52,6 +52,10 @@ export async function setCached(key, data) {
   await db.apiCache.put({ key, data, updatedAt: Date.now() });
 }
 
+export async function clearApiCache() {
+  await db.apiCache.clear();
+}
+
 export async function enqueue(item) {
   await db.syncQueue.add({ ...item, createdAt: Date.now() });
   notify();

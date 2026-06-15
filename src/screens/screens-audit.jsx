@@ -2,6 +2,7 @@ import React from 'react';
 import { fmt, fmtDate } from '../data.js';
 import { useQueryClient } from '@tanstack/react-query';
 import { resetFromDate } from '../api/finance.js';
+import { clearApiCache } from '../store/offlineQueue.js';
 import { toast } from '../lib/toast.js';
 import {
   currentMonthKey,
@@ -288,6 +289,7 @@ function RevisaoLancamentosScreen({ onBack, transactions = [], txActions, dataSt
         accountId: 'pf-cc',
         wipeAll: true,
       });
+      await clearApiCache();
       qc.invalidateQueries();
       toast.success('Conta reiniciada — comece a lançar a partir de hoje');
       setExpandedMonth(null);

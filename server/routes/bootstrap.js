@@ -3,11 +3,13 @@ import * as store from '../store/index.js';
 import { authRequired } from '../middleware/auth.js';
 import { buildFinancePayload } from '../utils/derive.js';
 import { applyLiveStats } from '../utils/liveStats.js';
+import { normalizeUserSnapshot } from '../utils/migrateUserData.js';
 
 const router = Router();
 
 router.get('/bootstrap', authRequired, async (req, res) => {
-  const snap = await store.getSnapshot(req.user.id);
+  let snap = await store.getSnapshot(req.user.id);
+  snap = await normalizeUserSnapshot(req.user.id, snap);
   const transactions = await store.listTransactions(req.user.id, {});
   const payload = applyLiveStats(buildFinancePayload(snap), transactions);
   res.json(payload);
