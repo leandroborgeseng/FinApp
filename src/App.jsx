@@ -18,6 +18,7 @@ import { RecorrenciasSheet } from './screens/screens-sheet.jsx';
 import { RevisaoLancamentosScreen } from './screens/screens-audit.jsx';
 import { ErrorBoundary } from './components/ErrorBoundary.jsx';
 import { ToastHost } from './components/Toast.jsx';
+import { UpdatePrompt } from './components/UpdatePrompt.jsx';
 import { applyThemeClass } from './lib/theme.js';
 import { loadActiveTab, saveActiveTab } from './lib/appPrefs.js';
 
@@ -39,6 +40,7 @@ export default function App() {
       <>
         <ToastHost />
         <OnboardingApp />
+        <UpdatePrompt />
       </>
     );
   }

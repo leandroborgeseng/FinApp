@@ -6,6 +6,7 @@ import { Card, Tag } from './screens-a.jsx';
 import { OrcadoVsRealizado } from './screens-analise.jsx';
 import { SyncBadge } from '../components/navigation.jsx';
 import { InstallPrompt } from '../components/InstallPrompt.jsx';
+import { CheckForUpdateButton } from '../components/UpdatePrompt.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { repasseMonthIndex, budgetLabelToKey, currentMonthKey } from '../lib/dates.js';
 import { downloadExport, downloadBackup, pickAndImportFile } from '../api/backup.js';
@@ -778,6 +779,15 @@ function MaisScreen({ user, syncStatus, dark, onToggleDark, repasse, onShowRepas
             </Card>
           </div>
         ))}
+
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 8, paddingLeft: 4 }}>
+            App
+          </div>
+          <Card style={{ padding: '4px 6px' }}>
+            <CheckForUpdateButton />
+          </Card>
+        </div>
 
         {/* Version */}
         <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-faint)', paddingTop: 8 }}>

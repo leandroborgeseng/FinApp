@@ -1,5 +1,6 @@
 import React from 'react';
 import { applyThemeClass } from '../lib/theme.js';
+import { UpdatePrompt } from './UpdatePrompt.jsx';
 
 export function AppShell({ children, dark }) {
   React.useEffect(() => {
@@ -18,6 +19,7 @@ export function AppShell({ children, dark }) {
       fontFamily: "'DM Sans', system-ui, sans-serif",
     }}>
       {children}
+      <UpdatePrompt />
     </div>
   );
 }
