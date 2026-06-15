@@ -38,42 +38,159 @@ function Card({ children, style = {} }) {
   );
 }
 
-function TxRow({ tx, onDelete, busy }) {
+function TxRow({ tx, expanded, onToggle, editing, setEditing, txActions, busy }) {
   const color = tx.type === 'income' ? '#16A34A' : tx.type === 'expense' ? '#DC2626' : '#2563EB';
+  const isExp = expanded === tx.id;
+
+  const saveEdit = () => {
+    if (!txActions || !editing[tx.id]) return;
+    const patch = { ...editing[tx.id] };
+    if (patch.value !== undefined) patch.value = Number(patch.value) || tx.value;
+    txActions.update(tx.id, patch);
+    setEditing((prev) => { const n = { ...prev }; delete n[tx.id]; return n; });
+    onToggle(null);
+  };
+
+  const deleteOne = () => {
+    if (!txActions) return;
+    if (!window.confirm(`Excluir "${tx.desc}"?`)) return;
+    txActions.remove(tx.id);
+    onToggle(null);
+  };
+
+  const toggleDone = () => {
+    if (!txActions) return;
+    txActions.toggleDone(tx.id, !tx.done);
+  };
+
+  const inputStyle = {
+    width: '100%', padding: '8px 10px', borderRadius: 9, border: '1.5px solid var(--border)',
+    fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', background: 'var(--bg-card)',
+    outline: 'none', fontFamily: 'DM Sans, system-ui', boxSizing: 'border-box',
+  };
+
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0',
-      borderBottom: '1px solid var(--divider)',
-    }}
-    >
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{
-          fontSize: 13, fontWeight: 600, color: 'var(--text-primary)',
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        }}
-        >
-          {tx.desc}
-        </div>
-        <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
-          {fmtDate(tx.date)} · {tx.entity} · {tx.cat || 'Outros'}
-        </div>
-      </div>
-      <div style={{ fontSize: 13, fontWeight: 700, color, flexShrink: 0 }}>
-        {tx.type === 'income' ? '+' : '−'}{fmt(tx.value, { short: true })}
-      </div>
-      <button
-        type="button"
-        disabled={busy}
-        onClick={() => onDelete(tx)}
+    <div style={{ borderBottom: '1px solid var(--divider)' }}>
+      <div
+        onClick={() => onToggle(isExp ? null : tx.id)}
         style={{
-          padding: '6px 10px', borderRadius: 8, border: '1.5px solid #FECACA',
-          background: '#FEF2F2', color: '#DC2626', fontSize: 11, fontWeight: 700,
-          cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.5 : 1,
-          fontFamily: 'DM Sans, system-ui', flexShrink: 0,
+          display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0',
+          cursor: 'pointer',
         }}
       >
-        Excluir
-      </button>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontSize: 13, fontWeight: 600, color: 'var(--text-primary)',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}
+          >
+            {tx.desc}
+          </div>
+          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
+            {fmtDate(tx.date)} · {tx.entity} · {tx.cat || 'Outros'}
+            {tx.done ? ' · Realizado' : ' · Previsto'}
+          </div>
+        </div>
+        <div style={{ fontSize: 13, fontWeight: 700, color, flexShrink: 0 }}>
+          {tx.type === 'income' ? '+' : '−'}{fmt(tx.value, { short: true })}
+        </div>
+        <span style={{ fontSize: 10, color: 'var(--text-faint)', flexShrink: 0 }}>{isExp ? '▴' : '▾'}</span>
+      </div>
+
+      {isExp && (
+        <div
+          style={{ marginBottom: 12, padding: 12, background: 'var(--bg-app)', borderRadius: 12 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 10 }}>
+            {[['Descrição', 'desc', 'text'], ['Valor (R$)', 'value', 'numeric'], ['Categoria', 'cat', 'text']].map(([lbl, field, mode]) => (
+              <div key={field}>
+                <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3 }}>{lbl}</div>
+                <input
+                  defaultValue={tx[field]}
+                  onChange={(e) => setEditing((prev) => ({
+                    ...prev,
+                    [tx.id]: {
+                      ...(prev[tx.id] || {}),
+                      [field]: mode === 'numeric'
+                        ? (Number(e.target.value.replace(/\D/g, '')) || tx.value)
+                        : e.target.value,
+                    },
+                  }))}
+                  inputMode={mode === 'numeric' ? 'numeric' : 'text'}
+                  style={inputStyle}
+                />
+              </div>
+            ))}
+            <div>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3 }}>Data</div>
+              <input
+                type="date"
+                defaultValue={tx.date}
+                onChange={(e) => setEditing((prev) => ({
+                  ...prev,
+                  [tx.id]: { ...(prev[tx.id] || {}), date: e.target.value },
+                }))}
+                style={inputStyle}
+              />
+            </div>
+            <div>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 3 }}>Conta</div>
+              <select
+                defaultValue={tx.entity}
+                onChange={(e) => setEditing((prev) => ({
+                  ...prev,
+                  [tx.id]: { ...(prev[tx.id] || {}), entity: e.target.value },
+                }))}
+                style={inputStyle}
+              >
+                <option value="PF">PF</option>
+                <option value="PJ">PJ</option>
+              </select>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={saveEdit}
+              style={{
+                flex: 2, padding: '9px', borderRadius: 9, border: 'none', background: '#2563EB',
+                color: '#fff', fontSize: 11, fontWeight: 700, cursor: busy ? 'default' : 'pointer',
+                opacity: busy ? 0.6 : 1, fontFamily: 'DM Sans, system-ui',
+              }}
+            >
+              Salvar
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={toggleDone}
+              style={{
+                flex: 2, padding: '9px', borderRadius: 9, border: 'none',
+                background: tx.done ? '#FEF2F2' : '#F0FDF4',
+                color: tx.done ? '#DC2626' : '#16A34A',
+                fontSize: 11, fontWeight: 700, cursor: busy ? 'default' : 'pointer',
+                opacity: busy ? 0.6 : 1, fontFamily: 'DM Sans, system-ui',
+              }}
+            >
+              {tx.done ? 'Desmarcar' : '✓ Realizado'}
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={deleteOne}
+              style={{
+                flex: 1, padding: '9px', borderRadius: 9, border: 'none', background: '#FEF2F2',
+                color: '#DC2626', fontSize: 14, fontWeight: 700, cursor: busy ? 'default' : 'pointer',
+                opacity: busy ? 0.6 : 1, fontFamily: 'DM Sans, system-ui',
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -82,6 +199,8 @@ function RevisaoLancamentosScreen({ onBack, transactions = [], txActions, dataSt
   const [filter, setFilter] = React.useState('Todos');
   const [expandedMonth, setExpandedMonth] = React.useState(null);
   const [showLixo, setShowLixo] = React.useState(false);
+  const [expandedTx, setExpandedTx] = React.useState(null);
+  const [editing, setEditing] = React.useState({});
   const busy = txActions?.isPending;
 
   const year = new Date().getFullYear();
@@ -114,12 +233,6 @@ function RevisaoLancamentosScreen({ onBack, transactions = [], txActions, dataSt
   });
 
   const staleCount = byMonth.filter((m) => m.beforeStart).reduce((s, m) => s + m.txs.length, 0);
-
-  const deleteOne = (tx) => {
-    if (!txActions) return;
-    if (!window.confirm(`Excluir "${tx.desc}"?`)) return;
-    txActions.remove(tx.id);
-  };
 
   const deleteMonth = async (monthKey, count, label) => {
     if (!txActions || !count) return;
@@ -172,8 +285,8 @@ function RevisaoLancamentosScreen({ onBack, transactions = [], txActions, dataSt
           </div>
           {dataStartsAt && (
             <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 12, lineHeight: 1.4 }}>
-              Conta configurada a partir de <strong>{monthKeyToLabel(dataStartsAt)}</strong>.
-              Meses anteriores neste ano devem estar vazios.
+              Toque em um lançamento para editar data, valor ou desmarcar como realizado.
+              Meses anteriores a <strong>{monthKeyToLabel(dataStartsAt)}</strong> podem conter lixo do histórico.
             </div>
           )}
         </Card>
@@ -253,7 +366,16 @@ function RevisaoLancamentosScreen({ onBack, transactions = [], txActions, dataSt
             {showLixo && (
               <div style={{ padding: '0 16px 12px', borderTop: '1px solid var(--divider)' }}>
                 {garbage.map((tx) => (
-                  <TxRow key={tx.id} tx={tx} onDelete={deleteOne} busy={busy} />
+                  <TxRow
+                    key={tx.id}
+                    tx={tx}
+                    expanded={expandedTx}
+                    onToggle={setExpandedTx}
+                    editing={editing}
+                    setEditing={setEditing}
+                    txActions={txActions}
+                    busy={busy}
+                  />
                 ))}
               </div>
             )}
@@ -316,7 +438,16 @@ function RevisaoLancamentosScreen({ onBack, transactions = [], txActions, dataSt
                   ) : (
                     <>
                       {m.txs.map((tx) => (
-                        <TxRow key={tx.id} tx={tx} onDelete={deleteOne} busy={busy} />
+                        <TxRow
+                          key={tx.id}
+                          tx={tx}
+                          expanded={expandedTx}
+                          onToggle={setExpandedTx}
+                          editing={editing}
+                          setEditing={setEditing}
+                          txActions={txActions}
+                          busy={busy}
+                        />
                       ))}
                       <button
                         type="button"

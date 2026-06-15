@@ -5,7 +5,7 @@ import { SparkLine, BarChart, AreaChart, DonutChart, ChartBox } from '../compone
 import { FluxoView } from './screens-c.jsx';
 import { SyncBadge } from '../components/navigation.jsx';
 import { InstallPrompt } from '../components/InstallPrompt.jsx';
-import { currentMonthKey, findBudgetIndex, formatMonthLong, getTodayDay, budgetLabelToKey, repasseMonthIndex, repasseTotalDone, MONTH_LABELS } from '../lib/dates.js';
+import { currentMonthKey, findBudgetIndex, formatMonthLong, getTodayDay, budgetLabelToKey, repasseMonthIndex, repasseTotalDone, MONTH_LABELS, yearMonthKeys, monthKeyToLabel } from '../lib/dates.js';
 import { openingBalanceForMonth, buildMonthEntries, todayContextForMonth, balanceAtDay } from '../lib/balances.js';
 import { buildDashboardSparks } from '../lib/sparklines.js';
 // screens-a.jsx — Dashboard + Movimentos
@@ -586,14 +586,28 @@ function MovimentosScreen({ transactions, txActions, defaultFilter }) {
   const [expanded, setExpanded] = React.useState(null);
   const [editing,  setEditing]  = React.useState({}); // {id: {value, desc, cat}}
   const [view,     setView]     = React.useState('lista');
-  const [monthIdx, setMonthIdx] = React.useState(() => findBudgetIndex(d.monthlyBudget));
+  const year = new Date().getFullYear();
+  const calMonths = React.useMemo(() => yearMonthKeys(year), [year]);
+  const [calIdx, setCalIdx] = React.useState(() => {
+    const idx = calMonths.indexOf(currentMonthKey());
+    return idx >= 0 ? idx : Math.max(0, calMonths.length - 1);
+  });
 
   React.useEffect(() => { if (defaultFilter) setFilter(defaultFilter); }, [defaultFilter]);
 
-  const MB_ALL = d.monthlyBudget;
-  const monthRaw = MB_ALL[monthIdx]?.m || 'Jun/26';
-  const monthLabel = monthRaw;
-  const monthKey = budgetLabelToKey(monthRaw) || currentMonthKey();
+  const monthKey = calMonths[calIdx] || currentMonthKey();
+  const monthLabel = monthKeyToLabel(monthKey);
+  const monthIdx = React.useMemo(() => {
+    const exact = (d.monthlyBudget || []).findIndex((b) => budgetLabelToKey(b.m) === monthKey);
+    if (exact >= 0) return exact;
+    return findBudgetIndex(d.monthlyBudget, new Date(`${monthKey}-15`));
+  }, [monthKey, d.monthlyBudget]);
+  const budgetMonthKey = budgetLabelToKey(d.monthlyBudget[monthIdx]?.m);
+  const hasExactBudget = budgetMonthKey === monthKey;
+
+  React.useEffect(() => {
+    if (!hasExactBudget && view !== 'lista') setView('lista');
+  }, [hasExactBudget, view]);
 
   const allTx  = (transactions || []).filter(tx => tx.date.startsWith(monthKey));
   const filtered = filter === 'Todos' ? allTx : allTx.filter(t => t.entity === filter);
@@ -641,15 +655,15 @@ function MovimentosScreen({ transactions, txActions, defaultFilter }) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>Movimentos</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <button onClick={() => setMonthIdx(i => Math.max(0, i - 1))} disabled={monthIdx === 0}
-              style={{ width: 28, height: 28, borderRadius: 8, border: 'none', background: monthIdx === 0 ? '#F4F5F8' : 'var(--border)', cursor: monthIdx === 0 ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 700, color: monthIdx === 0 ? '#C4C7D4' : 'var(--text-primary)' }}>
+            <button onClick={() => setCalIdx((i) => Math.max(0, i - 1))} disabled={calIdx === 0}
+              style={{ width: 28, height: 28, borderRadius: 8, border: 'none', background: calIdx === 0 ? '#F4F5F8' : 'var(--border)', cursor: calIdx === 0 ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 700, color: calIdx === 0 ? '#C4C7D4' : 'var(--text-primary)' }}>
               &#8249;
             </button>
             <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', minWidth: 60, textAlign: 'center' }}>
               {monthLabel}
             </div>
-            <button onClick={() => setMonthIdx(i => Math.min(MB_ALL.length - 1, i + 1))} disabled={monthIdx === MB_ALL.length - 1}
-              style={{ width: 28, height: 28, borderRadius: 8, border: 'none', background: monthIdx === MB_ALL.length - 1 ? '#F4F5F8' : 'var(--border)', cursor: monthIdx === MB_ALL.length - 1 ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 700, color: monthIdx === MB_ALL.length - 1 ? '#C4C7D4' : 'var(--text-primary)' }}>
+            <button onClick={() => setCalIdx((i) => Math.min(calMonths.length - 1, i + 1))} disabled={calIdx === calMonths.length - 1}
+              style={{ width: 28, height: 28, borderRadius: 8, border: 'none', background: calIdx === calMonths.length - 1 ? '#F4F5F8' : 'var(--border)', cursor: calIdx === calMonths.length - 1 ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 700, color: calIdx === calMonths.length - 1 ? '#C4C7D4' : 'var(--text-primary)' }}>
               &#8250;
             </button>
           </div>
@@ -658,17 +672,23 @@ function MovimentosScreen({ transactions, txActions, defaultFilter }) {
         {/* View toggle: Lista | Fluxo | Diário */}
         <div style={{ display: 'flex', background: 'var(--bg-toggle)', borderRadius: 12, padding: 3, gap: 2 }}>
           {[['lista','Lista'],['fluxo','Fluxo'],['diario','Diário']].map(([k, l]) => (
-            <button key={k} onClick={() => setView(k)} style={{
-              flex: 1, padding: '8px 4px', borderRadius: 9, border: 'none', cursor: 'pointer',
+            <button key={k} onClick={() => hasExactBudget || k === 'lista' ? setView(k) : null} style={{
+              flex: 1, padding: '8px 4px', borderRadius: 9, border: 'none', cursor: (hasExactBudget || k === 'lista') ? 'pointer' : 'default',
               background: view === k ? 'var(--bg-card)' : 'transparent',
-              color: view === k ? '#1A1F36' : 'var(--text-muted)',
+              color: view === k ? '#1A1F36' : (!hasExactBudget && k !== 'lista') ? '#C4C7D4' : 'var(--text-muted)',
               fontWeight: view === k ? 700 : 500,
               fontSize: 13, fontFamily: 'DM Sans, system-ui',
               boxShadow: view === k ? '0 1px 4px rgba(26,31,54,0.1)' : 'none',
               transition: 'all 0.2s ease',
+              opacity: (!hasExactBudget && k !== 'lista') ? 0.45 : 1,
             }}>{l}</button>
           ))}
         </div>
+        {!hasExactBudget && (
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.4, padding: '0 2px' }}>
+            Meses sem orçamento na planilha: edite lançamentos na lista ou use Auditoria.
+          </div>
+        )}
 
         {/* PF / PJ / Todos filter */}
         <div style={{ display: 'flex', gap: 8 }}>
