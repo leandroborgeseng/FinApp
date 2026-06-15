@@ -75,3 +75,10 @@ export function fetchPreferences() {
 export function savePreferences(prefs) {
   return apiFetch('/preferences', { method: 'PUT', body: JSON.stringify(prefs) });
 }
+
+export function resetFromDate({ cutoffDate, balance, accountId, wipeAll }) {
+  return apiFetch('/reset-from-date', {
+    method: 'POST',
+    body: JSON.stringify({ cutoffDate, balance, accountId, wipeAll }),
+  });
+}

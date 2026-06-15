@@ -36,10 +36,10 @@ const MB = [ // monthlyBudget: 31 meses Jun/26→Dez/28 (fonte: planilha Orçame
 ];
 
 const AppData = {
-  // ── Patrimônio ──────────────────────────────────────
-  netWorth:       1250000,
-  pfAvailable:    85000,
-  pjAvailable:    320000,
+  // ── Patrimônio (saldos em contas — configure em Mais → Contas) ──
+  netWorth:       0,
+  pfAvailable:    0,
+  pjAvailable:    0,
   pfInvestments:  410000,
   pjInvestments:  280000,
   debts:          170000,
@@ -104,11 +104,11 @@ const AppData = {
     { desc: 'Carro (parcela)',  type: 'expense',  value: 7300,  day: 20, entity: 'PF', cat: 'Veículo'        },
     { desc: 'Despesas diversas',type: 'expense',  value: 6000,  day: 25, entity: 'PF', cat: 'Outros'         },
   ],
-  startBalances: { PF: 85000, PJ: 320000, Todos: 405000 },
+  startBalances: { PF: 0, PJ: 0, Todos: 0 },
 
   accounts: [
-    { id: 'pf-cc',    type: 'checking', entity: 'PF', name: 'Conta Corrente PF', bank: 'Nubank',     balance: 85000  },
-    { id: 'pj-cc',    type: 'checking', entity: 'PJ', name: 'Conta PJ',          bank: 'Inter PJ',   balance: 320000 },
+    { id: 'pf-cc',    type: 'checking', entity: 'PF', name: 'Conta Corrente PF', bank: 'Nubank',     balance: 0 },
+    { id: 'pj-cc',    type: 'checking', entity: 'PJ', name: 'Conta PJ',          bank: 'Inter PJ',   balance: 0 },
     { id: 'master',   type: 'card',     entity: 'PF', name: 'Cartão Master',     brand: 'Mastercard', limit: 15000, used: 3390, closingDay: 12, dueDay: 20 },
     { id: 'nubank-pj',type: 'card',     entity: 'PJ', name: 'Cartão PJ',         brand: 'Visa',       limit: 25000, used: 4800,  closingDay: 5,  dueDay: 15 },
   ],
@@ -170,7 +170,7 @@ const AppData = {
     { name: 'Independência Financeira', target: 3000000, current: 1250000, year: 2029 },
     { name: 'Expansão da Empresa',      target: 500000,  current: 280000,  year: 2028 },
     { name: 'Compra de Imóvel',         target: 800000,  current: 420000,  year: 2030 },
-    { name: 'Reserva de Emergência',    target: 200000,  current: 85000,   year: 2027 },
+    { name: 'Reserva de Emergência',    target: 200000,  current: 0,       year: 2027 },
   ],
 
   // ── Projeção 36 meses (sobra mensal) ────────────────

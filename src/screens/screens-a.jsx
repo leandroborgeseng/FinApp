@@ -8,6 +8,7 @@ import { InstallPrompt } from '../components/InstallPrompt.jsx';
 import { currentMonthKey, findBudgetIndex, formatMonthLong, getTodayDay, budgetLabelToKey, repasseMonthIndex, repasseTotalDone, MONTH_LABELS, yearMonthKeys, monthKeyToLabel } from '../lib/dates.js';
 import { openingBalanceForMonth, buildMonthEntries, todayContextForMonth, balanceAtDay } from '../lib/balances.js';
 import { buildDashboardSparks } from '../lib/sparklines.js';
+import { buildNetWorthBreakdown } from '../lib/portfolioTotals.js';
 // screens-a.jsx — Dashboard + Movimentos
 
 /* ── shared tiny helpers ───────────────────────────── */
@@ -53,9 +54,97 @@ function useCountUp(target, duration = 1600) {
   return value;
 }
 
+/* ── Composição do patrimônio líquido ──────────────── */
+function NetWorthBreakdownModal({ finance, onClose }) {
+  const breakdown = React.useMemo(() => buildNetWorthBreakdown(finance), [finance]);
+  const positiveTotal = breakdown.filter((b) => b.value > 0).reduce((s, b) => s + b.value, 0);
+
+  return (
+    <div
+      style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', background: 'rgba(15,20,40,0.45)' }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div style={{ background: 'var(--bg-card)', borderRadius: '24px 24px 0 0', padding: '0 0 40px', boxShadow: '0 -8px 40px rgba(0,0,0,0.12)', maxHeight: '92%', overflowY: 'auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 12, paddingBottom: 4 }}>
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: '#DCDEE6' }}/>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 20px 16px' }}>
+          <div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'DM Sans, system-ui' }}>Composição do patrimônio</div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>Disponível + investimentos + metas − dívidas</div>
+          </div>
+          <button type="button" onClick={onClose} style={{ background: 'var(--bg-subtle)', border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1L13 13M13 1L1 13" stroke="#8B90A0" strokeWidth="2" strokeLinecap="round"/></svg>
+          </button>
+        </div>
+
+        <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{
+            background: 'linear-gradient(145deg, #1A1F36 0%, #253056 100%)',
+            borderRadius: 16, padding: '16px 18px',
+          }}>
+            <div style={{ fontSize: 10, color: '#94A3CC', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Patrimônio líquido</div>
+            <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--text-inverse)', letterSpacing: '-0.5px' }}>{fmt(finance.netWorth)}</div>
+          </div>
+
+          <Card style={{ padding: '16px 14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 14 }}>
+              <div style={{ flexShrink: 0 }}>
+                <DonutChart
+                  size={100}
+                  thickness={16}
+                  segments={breakdown.filter((b) => b.value > 0).map((b) => ({ value: b.value, color: b.color }))}
+                />
+              </div>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {breakdown.map((b, i) => {
+                  const pct = b.value > 0 && positiveTotal > 0 ? Math.round(b.value / positiveTotal * 100) : 0;
+                  return (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                      <div style={{ width: 8, height: 8, borderRadius: 2, background: b.color, flexShrink: 0 }}/>
+                      <div style={{ flex: 1, fontSize: 11, color: 'var(--text-primary)' }}>{b.label}</div>
+                      {b.value > 0 && <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)' }}>{pct}%</div>}
+                      <div style={{ fontSize: 11, fontWeight: 700, color: b.value < 0 ? '#DC2626' : 'var(--text-primary)', minWidth: 56, textAlign: 'right' }}>
+                        {b.value < 0 ? '−' : ''}{fmt(Math.abs(b.value), { short: true })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div style={{ borderTop: '1px solid var(--divider)', paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {breakdown.map((b, i) => (
+                b.details?.length > 0 && (
+                  <div key={i}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>{b.label}</div>
+                    {b.details.map((row, j) => (
+                      <div key={j} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', gap: 8 }}>
+                        <div style={{ fontSize: 12, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.label}</div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: row.value < 0 ? '#DC2626' : 'var(--text-muted)', flexShrink: 0 }}>
+                          {row.value < 0 ? '−' : ''}{fmt(Math.abs(row.value), { short: true })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )
+              ))}
+            </div>
+          </Card>
+
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.45, padding: '0 2px' }}>
+            PF e PJ disponível vêm dos saldos em <strong>Mais → Contas e cartões</strong>. Investimentos e metas são editáveis na aba Patrimônio.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── Dashboard ─────────────────────────────────────── */
 function DashboardScreen({ onNewEntry, repasse, onShowRepasse, transactions, txActions, onNavToMovimentos, syncStatus }) {
   const d = useFinance();
+  const [showBreakdown, setShowBreakdown] = React.useState(false);
   const animNetWorth = useCountUp(d.netWorth);
   const todayDay = getTodayDay();
   const monthKey = currentMonthKey();
@@ -200,11 +289,17 @@ function DashboardScreen({ onNewEntry, repasse, onShowRepasse, transactions, txA
         )}
 
         {/* Hero card — net worth */}
-        <div style={{
-          background: 'linear-gradient(145deg, #1A1F36 0%, #253056 100%)',
-          borderRadius: 22, padding: '20px 20px 18px', position: 'relative', overflow: 'hidden',
-          boxShadow: '0 6px 24px rgba(26,31,54,0.22)',
-        }}>
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => setShowBreakdown(true)}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowBreakdown(true); }}
+          style={{
+            background: 'linear-gradient(145deg, #1A1F36 0%, #253056 100%)',
+            borderRadius: 22, padding: '20px 20px 18px', position: 'relative', overflow: 'hidden',
+            boxShadow: '0 6px 24px rgba(26,31,54,0.22)', cursor: 'pointer',
+          }}
+        >
           <div style={{ position: 'absolute', right: -10, bottom: -8, opacity: 0.18, width: '55%', maxWidth: 200 }}>
             <ChartBox height={72}>
               {(w, h) => <SparkLine data={d.netWorthHistory} width={w} height={h} color="#60A5FA"/>}
@@ -214,9 +309,10 @@ function DashboardScreen({ onNewEntry, repasse, onShowRepasse, transactions, txA
             <div style={{ fontSize: 11, color: '#94A3CC', fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 6 }}>
               Patrimônio Líquido
             </div>
-            <div style={{ fontSize: 34, fontWeight: 800, color: 'var(--text-inverse)', letterSpacing: '-0.5px', lineHeight: 1.1, marginBottom: 16 }}>
+            <div style={{ fontSize: 34, fontWeight: 800, color: 'var(--text-inverse)', letterSpacing: '-0.5px', lineHeight: 1.1, marginBottom: 8 }}>
               {fmt(animNetWorth)}
             </div>
+            <div style={{ fontSize: 11, color: '#93C5FD', fontWeight: 600, marginBottom: 16 }}>Ver composição →</div>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 9, color: '#94A3CC', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Próx. mês</div>
@@ -424,11 +520,12 @@ function DashboardScreen({ onNewEntry, repasse, onShowRepasse, transactions, txA
         </div>
 
       </div>
+      {showBreakdown && (
+        <NetWorthBreakdownModal finance={d} onClose={() => setShowBreakdown(false)} />
+      )}
     </div>
   );
 }
-
-/* ── Fluxo Diário (sub-view) ───────────────────────── */
 function FluxoDiarioView({ entityFilter, monthKey, monthIdx, transactions }) {
   const d = useFinance();
   const MB = d.monthlyBudget[monthIdx] || d.monthlyBudget[0];

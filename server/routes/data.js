@@ -2,6 +2,7 @@ import { Router } from 'express';
 import * as store from '../store/index.js';
 import { authRequired } from '../middleware/auth.js';
 import { derivePortfolioFromSnapshot } from '../../src/lib/portfolioTotals.js';
+import { resetFromDate } from '../utils/resetFromDate.js';
 
 const router = Router();
 router.use(authRequired);
@@ -230,6 +231,22 @@ router.put('/preferences', async (req, res) => {
   const preferences = { ...(snap.preferences || {}), ...req.body };
   await store.updateSnapshot(req.user.id, { preferences });
   res.json(preferences);
+});
+
+router.post('/reset-from-date', async (req, res) => {
+  const { cutoffDate, balance, accountId, wipeAll } = req.body || {};
+  if (!cutoffDate) return res.status(400).json({ error: 'Informe cutoffDate (AAAA-MM-DD)' });
+  try {
+    const result = await resetFromDate(req.user.id, {
+      cutoffDate,
+      balance: balance != null ? Number(balance) : undefined,
+      accountId: accountId || 'pf-cc',
+      wipeAll: wipeAll !== false,
+    });
+    res.json(result);
+  } catch (e) {
+    res.status(400).json({ error: e.message || 'Falha ao reiniciar' });
+  }
 });
 
 export default router;

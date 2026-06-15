@@ -16,6 +16,7 @@ import { toast } from '../lib/toast.js';
 import { SOLO_VISIBLE_TOOLS } from '../lib/soloMenu.js';
 import { independenceGoal } from '../lib/goals.js';
 import { netWorthDelta12m, formatNetWorthDelta } from '../lib/sparklines.js';
+import { buildNetWorthBreakdown } from '../lib/portfolioTotals.js';
 // screens-b.jsx — Planejamento + Patrimônio + Mais
 
 /* ── Planejamento ───────────────────────────────────── */
@@ -268,22 +269,12 @@ function PatrimonioScreen() {
   const proj = (inv, n) => { const rm = rmf(inv.ret); return Math.round(inv.value * Math.pow(1+rm,n) + inv.monthly*(Math.pow(1+rm,n)-1)/rm); };
   const rg  = Math.pow(1 + 12.68/100, 1/12) - 1;
 
-  const imovelGoal = d.goals?.find((g) => g.name?.includes('Imóvel'));
   const indepGoal = independenceGoal(d.goals);
-  const totalFinDebt = (d.financingList || []).reduce((s, f) => s + (f.balance || 0), 0);
 
   const nwDelta = netWorthDelta12m(d.netWorthHistory);
   const nwDeltaLabel = formatNetWorthDelta(nwDelta);
 
-  const breakdown = [
-    { label: 'PF Disponível',   value: d.pfAvailable,    color: '#16A34A' },
-    { label: 'PJ Disponível',   value: d.pjAvailable,    color: '#2563EB' },
-    { label: 'Invest. PF',      value: d.pfInvestments,  color: '#7C3AED' },
-    { label: 'Invest. PJ',      value: d.pjInvestments,  color: '#8B5CF6' },
-    { label: 'Imóveis (est.)',   value: imovelGoal?.current || 0, color: '#F59E0B' },
-    { label: 'Metas (outras)',   value: (d.goals || []).filter((g) => !g.name?.includes('Imóvel')).reduce((s, g) => s + (g.current || 0), 0), color: '#06B6D4' },
-    { label: 'Financiamentos',   value: -totalFinDebt,    color: '#F87171' },
-  ];
+  const breakdown = buildNetWorthBreakdown(d);
 
   return (
     <div style={{ height: '100%', overflowY: 'auto', background: 'var(--bg-app)', fontFamily: 'DM Sans, system-ui' }}>

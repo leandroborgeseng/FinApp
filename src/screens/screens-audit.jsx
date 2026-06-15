@@ -1,5 +1,8 @@
 import React from 'react';
 import { fmt, fmtDate } from '../data.js';
+import { useQueryClient } from '@tanstack/react-query';
+import { resetFromDate } from '../api/finance.js';
+import { toast } from '../lib/toast.js';
 import {
   currentMonthKey,
   monthKeyToLabel,
@@ -196,12 +199,16 @@ function TxRow({ tx, expanded, onToggle, editing, setEditing, txActions, busy })
 }
 
 function RevisaoLancamentosScreen({ onBack, transactions = [], txActions, dataStartsAt }) {
+  const qc = useQueryClient();
   const [filter, setFilter] = React.useState('Todos');
   const [expandedMonth, setExpandedMonth] = React.useState(null);
   const [showLixo, setShowLixo] = React.useState(false);
   const [expandedTx, setExpandedTx] = React.useState(null);
   const [editing, setEditing] = React.useState({});
-  const busy = txActions?.isPending;
+  const [resetDate, setResetDate] = React.useState(() => new Date().toISOString().slice(0, 10));
+  const [resetBalance, setResetBalance] = React.useState('');
+  const [resetBusy, setResetBusy] = React.useState(false);
+  const busy = txActions?.isPending || resetBusy;
 
   const year = new Date().getFullYear();
   const { yearStart, yearEndExclusive } = yearPeriodBounds(year);
@@ -252,8 +259,43 @@ function RevisaoLancamentosScreen({ onBack, transactions = [], txActions, dataSt
     if (!txActions || !staleCount || !dataStartsAt) return;
     const label = monthKeyToLabel(dataStartsAt);
     if (!window.confirm(`Excluir ${staleCount} lançamento(s) de meses anteriores a ${label}?`)) return;
-    await txActions.bulkRemoveAsync({ before: `${dataStartsAt}-01` });
+    const cutoff = dataStartsAt.length > 7 ? dataStartsAt : `${dataStartsAt}-01`;
+    await txActions.bulkRemoveAsync({ before: cutoff });
     setExpandedMonth(null);
+  };
+
+  const handleFreshStart = async () => {
+    const balance = Number(String(resetBalance).replace(',', '.'));
+    if (!resetDate) {
+      toast.error('Informe a data de início');
+      return;
+    }
+    if (!Number.isFinite(balance) || balance < 0) {
+      toast.error('Informe o saldo atual da conta PF');
+      return;
+    }
+    const [y, m, d] = resetDate.split('-');
+    const label = `${d}/${m}/${y.slice(2)}`;
+    if (!window.confirm(
+      `Apagar todos os lançamentos e definir saldo PF em ${fmt(balance)} a partir de ${label}? Esta ação não pode ser desfeita.`,
+    )) return;
+
+    setResetBusy(true);
+    try {
+      await resetFromDate({
+        cutoffDate: resetDate,
+        balance,
+        accountId: 'pf-cc',
+        wipeAll: true,
+      });
+      qc.invalidateQueries();
+      toast.success('Conta reiniciada — comece a lançar a partir de hoje');
+      setExpandedMonth(null);
+    } catch (e) {
+      toast.error(e?.message || 'Falha ao reiniciar');
+    } finally {
+      setResetBusy(false);
+    }
   };
 
   return (
@@ -289,6 +331,54 @@ function RevisaoLancamentosScreen({ onBack, transactions = [], txActions, dataSt
               Meses anteriores a <strong>{monthKeyToLabel(dataStartsAt)}</strong> podem conter lixo do histórico.
             </div>
           )}
+        </Card>
+
+        <Card style={{ padding: '14px 16px', border: '1.5px solid #BFDBFE', background: '#EFF6FF' }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#1D4ED8', marginBottom: 6 }}>Reiniciar com saldo atual</div>
+          <div style={{ fontSize: 11, color: '#1E40AF', marginBottom: 12, lineHeight: 1.45 }}>
+            Apaga todos os lançamentos, define o saldo da conta PF e zera a PJ. Use quando quiser começar do zero a partir de uma data.
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>A partir de</span>
+              <input
+                type="date"
+                value={resetDate}
+                onChange={(e) => setResetDate(e.target.value)}
+                style={{
+                  padding: '9px 10px', borderRadius: 9, border: '1.5px solid var(--border)',
+                  fontSize: 13, fontFamily: 'DM Sans, system-ui', background: 'var(--bg-card)',
+                }}
+              />
+            </label>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Saldo PF (R$)</span>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={resetBalance}
+                onChange={(e) => setResetBalance(e.target.value.replace(/[^\d,.]/g, ''))}
+                placeholder="10668,46"
+                style={{
+                  padding: '9px 10px', borderRadius: 9, border: '1.5px solid var(--border)',
+                  fontSize: 13, fontWeight: 700, fontFamily: 'DM Sans, system-ui', background: 'var(--bg-card)',
+                }}
+              />
+            </label>
+          </div>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={handleFreshStart}
+            style={{
+              width: '100%', padding: '12px', borderRadius: 10, border: 'none',
+              background: '#2563EB', color: '#fff', fontWeight: 700, fontSize: 13,
+              cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1,
+              fontFamily: 'DM Sans, system-ui',
+            }}
+          >
+            {resetBusy ? 'Reiniciando…' : 'Apagar histórico e definir saldo'}
+          </button>
         </Card>
 
         {(garbage.length > 0 || staleCount > 0) && (
