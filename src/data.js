@@ -101,7 +101,7 @@ const AppData = {
     { desc: 'Lívia — Tratamento',type:'expense',  value: 2800,  day: 10, entity: 'PF', cat: 'Saúde'          },
     { desc: 'Cartão Master',    type: 'expense',  value: 3390,  day: 12, entity: 'PF', cat: 'Cartão'         },
     { desc: 'Plano saúde/apto', type: 'expense',  value: 907,   day: 5,  entity: 'PF', cat: 'Saúde'          },
-    { desc: 'Carro (parcela)',  type: 'expense',  value: 7300,  day: 20, entity: 'PF', cat: 'Veículo'        },
+    { desc: 'Carro (parcela)',  type: 'expense',  value: 1100,  day: 20, entity: 'PF', cat: 'Veículo'        },
     { desc: 'Despesas diversas',type: 'expense',  value: 6000,  day: 25, entity: 'PF', cat: 'Outros'         },
   ],
   startBalances: { PF: 0, PJ: 0, Todos: 0 },

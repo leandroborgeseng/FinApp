@@ -97,27 +97,33 @@ function RecorrenciasSheet({ onBack, transactions = [], txActions }) {
   };
 
   const currentMonthIdx = findBudgetIndex(d.monthlyBudget);
-  const currentMonthLabel = MONTHS[currentMonthIdx];
+  const [generateMonthIdx, setGenerateMonthIdx] = React.useState(currentMonthIdx);
+
+  React.useEffect(() => {
+    setGenerateMonthIdx(currentMonthIdx);
+  }, [currentMonthIdx]);
+
+  const generateMonthLabel = MONTHS[generateMonthIdx];
 
   const generateMonth = async () => {
     if (!txActions?.bulkCreateAsync) {
       toast.error('Não foi possível criar lançamentos');
       return;
     }
-    if (currentMonthIdx < 0 || !currentMonthLabel) {
-      toast.error('Mês atual não encontrado no orçamento');
+    if (generateMonthIdx < 0 || !generateMonthLabel) {
+      toast.error('Mês não encontrado no orçamento');
       return;
     }
     setGenerating(true);
     try {
-      const generated = buildRecurringTransactionsForMonth(rows, currentMonthLabel, currentMonthIdx, overrides);
+      const generated = buildRecurringTransactionsForMonth(rows, generateMonthLabel, generateMonthIdx, overrides);
       const filtered = filterNewTransactions(transactions, generated);
       if (!filtered.length) {
-        toast.success(`Nada novo — lançamentos de ${currentMonthLabel} já existem`);
+        toast.success(`Nada novo — lançamentos de ${generateMonthLabel} já existem`);
         return;
       }
       await txActions.bulkCreateAsync(filtered);
-      toast.success(`${filtered.length} lançamento(s) criado(s) para ${currentMonthLabel}`);
+      toast.success(`${filtered.length} lançamento(s) criado(s) para ${generateMonthLabel}`);
     } catch (e) {
       toast.error(e?.message || 'Falha ao gerar lançamentos');
     } finally {
@@ -142,20 +148,53 @@ function RecorrenciasSheet({ onBack, transactions = [], txActions }) {
             style={{ width: 34, height: 34, borderRadius: '50%', background: 'var(--text-primary)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--text-inverse)', fontSize: 20, fontWeight: 300 }}>+</button>
         </div>
 
-        {currentMonthLabel && (
-          <button
-            type="button"
-            onClick={generateMonth}
-            disabled={generating || txActions?.isPending}
-            style={{
-              width: '100%', marginBottom: 10, padding: '10px 14px', borderRadius: 12,
-              border: '1.5px solid #BFDBFE', background: '#EFF6FF', color: '#1D4ED8',
-              fontSize: 13, fontWeight: 700, cursor: generating ? 'wait' : 'pointer',
-              fontFamily: 'DM Sans, system-ui', opacity: generating ? 0.7 : 1,
-            }}
-          >
-            {generating ? 'Gerando…' : `Gerar lançamentos de ${currentMonthLabel}`}
-          </button>
+        {generateMonthLabel && (
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <button
+                type="button"
+                disabled={generateMonthIdx <= 0 || generating}
+                onClick={() => setGenerateMonthIdx((i) => Math.max(0, i - 1))}
+                style={{
+                  width: 36, height: 36, borderRadius: 10, border: '1.5px solid var(--border)',
+                  background: 'var(--bg-card)', cursor: 'pointer', fontSize: 16, color: 'var(--text-primary)',
+                  opacity: generateMonthIdx <= 0 ? 0.4 : 1,
+                }}
+                aria-label="Mês anterior"
+              >‹</button>
+              <div style={{ flex: 1, textAlign: 'center' }}>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Gerar lançamentos de</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-primary)' }}>{generateMonthLabel}</div>
+              </div>
+              <button
+                type="button"
+                disabled={generateMonthIdx >= MONTHS.length - 1 || generating}
+                onClick={() => setGenerateMonthIdx((i) => Math.min(MONTHS.length - 1, i + 1))}
+                style={{
+                  width: 36, height: 36, borderRadius: 10, border: '1.5px solid var(--border)',
+                  background: 'var(--bg-card)', cursor: 'pointer', fontSize: 16, color: 'var(--text-primary)',
+                  opacity: generateMonthIdx >= MONTHS.length - 1 ? 0.4 : 1,
+                }}
+                aria-label="Próximo mês"
+              >›</button>
+            </div>
+            <button
+              type="button"
+              onClick={generateMonth}
+              disabled={generating || txActions?.isPending}
+              style={{
+                width: '100%', padding: '10px 14px', borderRadius: 12,
+                border: '1.5px solid #BFDBFE', background: '#EFF6FF', color: '#1D4ED8',
+                fontSize: 13, fontWeight: 700, cursor: generating ? 'wait' : 'pointer',
+                fontFamily: 'DM Sans, system-ui', opacity: generating ? 0.7 : 1,
+              }}
+            >
+              {generating ? 'Gerando…' : `Gerar ${generateMonthLabel}`}
+            </button>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 6, lineHeight: 1.4, textAlign: 'center' }}>
+              Um mês por vez · use ‹ › para Jul, Ago… · valor 0 na célula = não gera naquele mês
+            </div>
+          </div>
         )}
 
         {/* Filters */}
